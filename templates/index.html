@@ -251,6 +251,17 @@ tr:hover td{background:rgba(255,255,255,.02);}
     <span class="marker-pill mp-ye">__UNIQUE_ID__</span>
     <span class="marker-pill mp-re">__LITERAL__:val</span>
     <span class="marker-pill mp-or">__DETRIFF_RANGE__</span>
+
+    <div style="border-top:1px solid var(--b1);margin:14px 0 10px;"></div>
+    <div style="font-size:10px;color:var(--t3);font-family:var(--mo);margin-bottom:8px;">CONFIG PROFILE</div>
+    <div style="display:flex;flex-direction:column;gap:7px;">
+      <button class="btn btn-sec btn-sm" style="width:100%;justify-content:center;" onclick="exportConfig()">💾 Export Config</button>
+      <label class="btn btn-sec btn-sm" style="width:100%;justify-content:center;cursor:pointer;margin:0;">
+        📂 Import Config
+        <input type="file" id="cfg-import-input" accept=".json" style="display:none;" onchange="importConfig(event)"/>
+      </label>
+    </div>
+    <div id="cfg-status" style="font-size:10px;font-family:var(--mo);margin-top:7px;display:none;"></div>
   </div>
 </aside>
 
@@ -1187,6 +1198,136 @@ function buildTxPayload(mode) {
 }
 
 function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// ─── Config Export / Import ───────────────────────────────────────────────────
+function gv(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+function sv(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
+
+function exportConfig() {
+  const cfg = {
+    _version: 2,
+    _exported: new Date().toISOString(),
+    mode: S.mode,
+
+    // ── Standard Grid config ──
+    std: {
+      sheet_name:   gv('cfg-sheet'),
+      header_row:   gv('cfg-hr'),
+      start_col:    gv('cfg-sc'),
+      output_name:  gv('cfg-out'),
+      rto_src:      gv('cfg-rto-src'),
+      target_hdrs:  gv('target-hdrs'),
+      map_json:     gv('map-json'),
+      transformations: S.txRules.std.map(r => ({
+        id: r.id, column: r.column, ops: r.ops
+      }))
+    },
+
+    // ── SK Finance config ──
+    sk: {
+      sheet_name:     gv('sk-sheet'),
+      version_id:     gv('sk-ver'),
+      acc_r:          gv('sk-acc-r'),
+      acc_c:          gv('sk-acc-c'),
+      rel_r:          gv('sk-rel-r'),
+      rel_c:          gv('sk-rel-c'),
+      pb_row:         gv('sk-pb-row'),
+      ncb_row:        gv('sk-ncb-row'),
+      cc_row:         gv('sk-cc-row'),
+      lob_row:        gv('sk-lob-row'),
+      ds_row:         gv('sk-ds-row'),
+      st_col:         gv('sk-st-col'),
+      cl_col:         gv('sk-cl-col'),
+      dc_col:         gv('sk-dc-col'),
+      vpb:            gv('sk-vpb'),
+      out_cols:       gv('sk-out-cols'),
+      out_map:        gv('sk-out-map'),
+      out_name:       gv('sk-out-name'),
+      transformations: S.txRules.sk.map(r => ({
+        id: r.id, column: r.column, ops: r.ops
+      }))
+    }
+  };
+
+  const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const ts = new Date().toISOString().slice(0,16).replace('T','_').replace(':','-');
+  a.download = `grid_config_${ts}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showCfgStatus('✓ Config exported', 'var(--gr)');
+}
+
+async function importConfig(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  // Reset so same file can be re-imported
+  event.target.value = '';
+
+  let cfg;
+  try {
+    cfg = JSON.parse(await file.text());
+  } catch(e) {
+    showCfgStatus('✗ Invalid JSON: ' + e.message, 'var(--re)'); return;
+  }
+  if (!cfg._version) { showCfgStatus('✗ Not a valid config file', 'var(--re)'); return; }
+
+  // ── Restore Standard Grid ──
+  const s = cfg.std || {};
+  sv('cfg-sheet',   s.sheet_name  || '');
+  sv('cfg-hr',      s.header_row  || '2');
+  sv('cfg-sc',      s.start_col   || '2');
+  sv('cfg-out',     s.output_name || 'output');
+  sv('cfg-rto-src', s.rto_src     || 'UW Budget Cluster');
+  sv('target-hdrs', s.target_hdrs || '');
+  sv('map-json',    s.map_json    || '{}');
+
+  // Restore std transformations
+  S.txRules.std = (s.transformations || []).map((r,i) => ({
+    id: r.id ?? (Date.now() + i), column: r.column || '', ops: r.ops || []
+  }));
+  renderTxRules('std');
+
+  // ── Restore SK Finance ──
+  const k = cfg.sk || {};
+  sv('sk-sheet',   k.sheet_name || 'SK Finance');
+  sv('sk-ver',     k.version_id || '');
+  sv('sk-acc-r',   k.acc_r      || '1');
+  sv('sk-acc-c',   k.acc_c      || '2');
+  sv('sk-rel-r',   k.rel_r      || '3');
+  sv('sk-rel-c',   k.rel_c      || '2');
+  sv('sk-pb-row',  k.pb_row     || '9');
+  sv('sk-ncb-row', k.ncb_row    || '10');
+  sv('sk-cc-row',  k.cc_row     || '11');
+  sv('sk-lob-row', k.lob_row    || '12');
+  sv('sk-ds-row',  k.ds_row     || '14');
+  sv('sk-st-col',  k.st_col     || '1');
+  sv('sk-cl-col',  k.cl_col     || '2');
+  sv('sk-dc-col',  k.dc_col     || '3');
+  sv('sk-vpb',     k.vpb        || 'on OD,on TP');
+  sv('sk-out-cols',k.out_cols   || '');
+  sv('sk-out-map', k.out_map    || '{}');
+  sv('sk-out-name',k.out_name   || 'sk_finance_output');
+
+  S.txRules.sk = (k.transformations || []).map((r,i) => ({
+    id: r.id ?? (Date.now() + 1000 + i), column: r.column || '', ops: r.ops || []
+  }));
+  renderTxRules('sk');
+
+  // Restore mode last
+  if (cfg.mode) setMode(cfg.mode);
+
+  showCfgStatus('✓ Config restored!', 'var(--gr)');
+}
+
+function showCfgStatus(msg, color) {
+  const el = document.getElementById('cfg-status');
+  el.style.display = 'block';
+  el.style.color = color;
+  el.textContent = msg;
+  setTimeout(() => { el.style.display = 'none'; }, 3500);
+}
+
 function showAlert(msg) { alert(msg); }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────
