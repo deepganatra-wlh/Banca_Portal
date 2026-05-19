@@ -101,6 +101,30 @@ def apply_transformations(df, transformations):
                 df[col]=df[col].apply(lambda x: dv if (pd.isna(x) or str(x).strip() in ('','nan','None')) else x)
             elif ot == 'number_format':
                 df[col]=pd.to_numeric(df[col],errors='coerce').round(op.get('decimals',2))
+            elif ot == 'math_op':
+                expr = op.get('expression','').strip()
+                decimals = op.get('decimals', None)   # optional rounding
+                if expr:
+                    import math as _math
+                    _safe_ns = {
+                        'math': _math, 'abs': abs, 'round': round,
+                        'min': min, 'max': max, 'pow': pow,
+                        'sqrt': _math.sqrt, 'log': _math.log,
+                        'log10': _math.log10, 'ceil': _math.ceil,
+                        'floor': _math.floor, 'pi': _math.pi, 'e': _math.e,
+                    }
+                    def _apply_math(cell_val, _expr=expr, _ns=_safe_ns, _dec=decimals):
+                        try:
+                            x = float(cell_val)          # try numeric conversion
+                            result = eval(_expr, {"__builtins__": {}}, {**_ns, 'x': x})
+                            result = float(result)
+                            if _dec is not None:
+                                result = round(result, _dec)
+                            # Return int string if whole number, else float string
+                            return int(result) if result == int(result) else result
+                        except Exception:
+                            return cell_val              # keep original on any error
+                    df[col] = df[col].apply(_apply_math)
             elif ot == 'conditional':
                 for rule in op.get('rules',[]):
                     if_col   = rule.get('if_col')

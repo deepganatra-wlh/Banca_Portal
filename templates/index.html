@@ -187,6 +187,30 @@ tr:hover td{background:rgba(255,255,255,.02);}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .sk-cell-config{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
+/* ── Visual Mapper ── */
+.mapper-row{display:grid;grid-template-columns:210px 1fr auto;gap:8px;align-items:center;padding:7px 10px;background:var(--s2);border:1px solid var(--b1);border-radius:8px;transition:border-color .15s;}
+.mapper-row:hover{border-color:var(--b3);}
+.mapper-row.mapped{border-left:3px solid var(--gr);}
+.mapper-row.unmapped{border-left:3px solid var(--b2);}
+.mapper-row.hidden-row{display:none;}
+.mapper-target{font-family:var(--mo);font-size:11px;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.mapper-value-area{display:flex;gap:5px;align-items:center;flex-wrap:wrap;}
+.mapper-type-toggle{display:flex;border:1px solid var(--b2);border-radius:6px;overflow:hidden;flex-shrink:0;}
+.mapper-type-btn{padding:4px 9px;font-size:10px;font-family:var(--mo);cursor:pointer;background:transparent;border:none;color:var(--t2);transition:all .12s;}
+.mapper-type-btn.active{background:var(--ac);color:#fff;}
+.mapper-type-btn.active-lit{background:var(--re);color:#fff;}
+.mapper-type-btn.active-special{background:var(--ac2);color:#fff;}
+.mapper-col-select{flex:1;min-width:140px;max-width:260px;padding:5px 9px;font-size:12px;}
+.mapper-literal-input{flex:1;min-width:140px;padding:5px 9px;font-size:12px;}
+.mapper-special-btns{display:flex;gap:4px;flex-wrap:wrap;}
+.mapper-special-btn{padding:3px 8px;font-size:10px;font-family:var(--mo);border-radius:4px;cursor:pointer;border:1px solid var(--b2);background:var(--s3);color:var(--t2);white-space:nowrap;}
+.mapper-special-btn:hover,.mapper-special-btn.sel{border-color:var(--ac2);color:var(--ac2);background:rgba(123,92,247,.1);}
+.mapper-special-btn.sel-dt{border-color:var(--ye);color:var(--ye);background:rgba(247,201,79,.1);}
+.mapper-special-btn.sel-rto{border-color:var(--gr);color:var(--gr);background:rgba(45,212,160,.1);}
+.mapper-special-btn.sel-uid{border-color:var(--ac);color:var(--ac);background:rgba(79,142,247,.1);}
+.mapper-clear-btn{padding:3px 7px;background:none;border:none;color:var(--t3);cursor:pointer;font-size:13px;flex-shrink:0;border-radius:4px;}
+.mapper-clear-btn:hover{color:var(--re);background:rgba(247,79,79,.08);}
+
 /* ── Responsive ── */
 @media(max-width:860px){
   .app{grid-template-columns:1fr}.sidebar{display:none}
@@ -332,31 +356,64 @@ tr:hover td{background:rgba(255,255,255,.02);}
 
 <!-- S3: Mapping -->
 <div class="portal-panel" id="p-std-3">
-  <div class="ph"><h2>Column Mapping</h2><p>Define target schema and map source columns using special markers or direct column names.</p></div>
+  <div class="ph"><h2>Column Mapping</h2><p>Set your target headers, then map each one visually — pick a source column or insert a special marker in one click.</p></div>
+
   <div class="card">
     <div class="card-title">Target Headers</div>
     <div class="fg">
       <label>One column per line (or comma-separated)</label>
-      <textarea id="target-hdrs" rows="8" placeholder="Version Id*&#10;Oem Type*&#10;Biz Mix*&#10;Detriff Discount Ll*&#10;…"></textarea>
+      <textarea id="target-hdrs" rows="6" placeholder="Version Id*&#10;Oem Type*&#10;Biz Mix*&#10;Detriff Discount Ll*&#10;…" oninput="scheduleRebuildMapper()"></textarea>
     </div>
+    <button class="btn btn-sec btn-sm" onclick="rebuildMapper()" style="margin-top:4px">↻ Refresh Mapper</button>
   </div>
-  <div class="card">
-    <div class="card-title">Column Mapping <span class="badge badge-blue">JSON</span></div>
+
+  <!-- Visual Mapper -->
+  <div class="card" id="visual-mapper-card">
+    <div class="card-title">
+      Visual Mapper
+      <span class="badge badge-blue" id="mapper-status-badge">0 rows</span>
+      <button class="btn btn-sec btn-xs" style="margin-left:auto" onclick="toggleRawJson()">⌨ Raw JSON</button>
+    </div>
+
+    <!-- Source columns hint bar -->
+    <div id="mapper-no-preview" class="sb sb-warn" style="margin-bottom:12px;display:none">
+      ⚠ No source columns loaded — go to Step 2 and click "Preview Columns" first. You can still map using special markers.
+    </div>
+
+    <!-- Column filter -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <input type="text" id="mapper-filter" placeholder="🔍 Filter target headers…" style="max-width:260px;padding:6px 10px;font-size:12px" oninput="filterMapper(this.value)"/>
+      <span style="font-size:11px;color:var(--t3);font-family:var(--mo)">Special markers:</span>
+      <button class="sp-btn" onclick="setAllUnmapped('__DETRIFF_VALUE__')" title="Set all unmapped rows to DETRIFF_VALUE">⚡ DETRIFF</button>
+      <button class="sp-btn" onclick="setAllUnmapped('__RTO_CODES__')" title="Set all unmapped rows to RTO_CODES">🗺 RTO</button>
+      <button class="sp-btn" onclick="setAllUnmapped('__UNIQUE_ID__')" title="Set all unmapped rows to UNIQUE_ID">🔑 UID</button>
+    </div>
+
+    <div id="mapper-rows" style="display:flex;flex-direction:column;gap:4px;"></div>
+    <div id="mapper-empty" class="hint" style="padding:12px 0;display:none">Add target headers above to start mapping.</div>
+  </div>
+
+  <!-- Raw JSON (collapsible) -->
+  <div class="card" id="raw-json-card" style="display:none">
+    <div class="card-title">Raw JSON <span class="badge badge-blue">auto-synced from mapper</span>
+      <button class="btn btn-sec btn-xs" style="margin-left:auto" onclick="syncFromRaw()" title="Parse raw JSON and push back into the visual mapper">↑ Apply Raw JSON to Mapper</button>
+    </div>
     <div class="special-toolbar">
-      <span style="font-size:11px;color:var(--t3);font-family:var(--mo)">Insert:</span>
+      <span style="font-size:11px;color:var(--t3);font-family:var(--mo)">Insert at cursor:</span>
       <button class="sp-btn" onclick="insertMarker('__DETRIFF_VALUE__')">DETRIFF_VALUE</button>
       <button class="sp-btn" onclick="insertMarker('__RTO_CODES__')">RTO_CODES</button>
       <button class="sp-btn" onclick="insertMarker('__UNIQUE_ID__')">UNIQUE_ID</button>
       <button class="sp-btn" onclick="insertMarker('__LITERAL__:')">LITERAL:</button>
       <button class="sp-btn" onclick="insertMarker('__DETRIFF_RANGE__')">DETRIFF_RANGE</button>
     </div>
-    <textarea id="map-json" rows="16" placeholder='{ "Version Id*": "__LITERAL__:my_grid_v1", "Biz Mix*": "LOB", "Comm Rate*": "__DETRIFF_VALUE__", "Rto Code*": "__RTO_CODES__", "Unique Id": "__UNIQUE_ID__" }'></textarea>
+    <textarea id="map-json" rows="14" placeholder='{ "Version Id*": "__LITERAL__:my_grid_v1", "Biz Mix*": "LOB" }'></textarea>
     <div id="json-err" class="json-err" style="display:none"></div>
-    <div id="src-cols-area" style="display:none;margin-top:12px">
-      <div class="hint" style="margin-bottom:6px;">Available source columns (click to insert into JSON):</div>
+    <div id="src-cols-area" style="display:none;margin-top:10px">
+      <div class="hint" style="margin-bottom:6px;">Available source columns (click to insert):</div>
       <div class="col-chips" id="src-chips"></div>
     </div>
   </div>
+
   <div class="card">
     <div class="card-title">RTO Settings</div>
     <div class="fg" style="max-width:340px"><label>Cluster Source Column</label><input type="text" id="cfg-rto-src" value="UW Budget Cluster"/></div>
@@ -387,6 +444,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
       <b style="color:var(--tx)">prefix / suffix</b> — prepend/append text &nbsp;·&nbsp;
       <b style="color:var(--tx)">default_if_empty</b> — fill empty cells &nbsp;·&nbsp;
       <b style="color:var(--tx)">number_format</b> — round to N decimals &nbsp;·&nbsp;<br/>
+      <b style="color:var(--tx)">math_op</b> — apply a math expression (<code style="color:var(--ac)">x * 1.18</code>, <code style="color:var(--ac)">round(x/100,2)</code>) — non-numeric cells are skipped automatically &nbsp;·&nbsp;<br/>
       <b style="color:var(--tx)">conditional</b> — IF col A = X THEN set col B based on col B's current value
     </div>
   </div>
@@ -603,7 +661,7 @@ const S = {
   sk:  { sessionId:null, filepath:null, rtoPath:null, sheets:[], result:null, defaultCfg:null },
   txRules: { std:[], sk:[] }
 };
-const TX_TYPES = ['case','trim','strip_chars','replace','regex_replace','value_map','prefix','suffix','default_if_empty','number_format','conditional'];
+const TX_TYPES = ['case','trim','strip_chars','replace','regex_replace','value_map','prefix','suffix','default_if_empty','number_format','math_op','conditional'];
 
 // ─── Mode & navigation ────────────────────────────────────────────────────────
 function setMode(m) {
@@ -624,6 +682,7 @@ function goPanel(mode, n) {
   document.getElementById(`p-${mode}-${n}`).classList.add('active');
   updateNav(mode, n);
   if (mode==='std' && n===5) buildStdSummary();
+  if (mode==='std' && n===3) rebuildMapper();
   window.scrollTo(0,0);
 }
 
@@ -749,9 +808,13 @@ async function doPreview() {
 
 function renderSrcChips(cols) {
   const area = document.getElementById('src-cols-area');
-  area.style.display = 'block';
-  document.getElementById('src-chips').innerHTML = cols.slice(0,50).map(c=>
-    `<span class="src-chip" onclick="insertColName('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');
+  if (area) {
+    area.style.display = 'block';
+    document.getElementById('src-chips').innerHTML = cols.slice(0,50).map(c=>
+      `<span class="src-chip" onclick="insertColName('${c.replace(/'/g,"\\'")}')">${c}</span>`).join('');
+  }
+  // Also refresh mapper with new source columns
+  rebuildMapper();
 }
 
 function insertColName(c) {
@@ -763,6 +826,228 @@ function insertMarker(m) {
   const ta = document.getElementById('map-json');
   const p = ta.selectionStart;
   ta.value = ta.value.slice(0,p)+m+ta.value.slice(p); ta.focus();
+}
+
+// ─── Visual Mapper Engine ──────────────────────────────────────────────────────
+// mapper state: { [targetHeader]: { type: 'col'|'literal'|'special', value: string } }
+const mapperState = {};
+let mapperRebuildTimer = null;
+
+function scheduleRebuildMapper() {
+  clearTimeout(mapperRebuildTimer);
+  mapperRebuildTimer = setTimeout(rebuildMapper, 400);
+}
+
+function getTargetHeaders() {
+  const raw = (document.getElementById('target-hdrs')?.value||'').trim();
+  if (!raw) return [];
+  return (raw.includes('\n') ? raw.split('\n') : raw.split(','))
+    .map(h=>h.trim()).filter(Boolean);
+}
+
+function getSourceCols() { return S.std.srcCols || []; }
+
+const SPECIAL_MARKERS = [
+  { key: '__DETRIFF_VALUE__',  label: 'DETRIFF',   cls: 'sel-dt'  },
+  { key: '__RTO_CODES__',      label: 'RTO',        cls: 'sel-rto' },
+  { key: '__UNIQUE_ID__',      label: 'UNIQUE_ID',  cls: 'sel-uid' },
+  { key: '__DETRIFF_RANGE__',  label: 'DET_RANGE',  cls: 'sel'     },
+];
+
+function classifyValue(val) {
+  if (!val) return { type: 'col', value: '' };
+  if (val.startsWith('__LITERAL__:')) return { type: 'literal', value: val.slice(12) };
+  const sp = SPECIAL_MARKERS.find(m => m.key === val);
+  if (sp) return { type: 'special', value: val };
+  return { type: 'col', value: val };
+}
+
+function rebuildMapper() {
+  const headers = getTargetHeaders();
+  const srcCols = getSourceCols();
+  const container = document.getElementById('mapper-rows');
+  const empty = document.getElementById('mapper-empty');
+  const badge = document.getElementById('mapper-status-badge');
+  const noPreview = document.getElementById('mapper-no-preview');
+  if (!container) return;
+
+  if (!headers.length) {
+    container.innerHTML = '';
+    if (empty) empty.style.display = 'block';
+    if (badge) badge.textContent = '0 rows';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  if (noPreview) noPreview.style.display = srcCols.length ? 'none' : 'flex';
+
+  // Parse current JSON into mapper state (for preset loads etc.)
+  const rawJson = (document.getElementById('map-json')?.value||'').trim();
+  let existingMap = {};
+  try { if(rawJson) existingMap = JSON.parse(rawJson); } catch(e){}
+
+  // Merge existing map into mapper state, but don't overwrite user edits
+  for (const [k,v] of Object.entries(existingMap)) {
+    if (!(k in mapperState)) mapperState[k] = classifyValue(String(v));
+  }
+
+  const colOpts = srcCols.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  const mappedCount = headers.filter(h => {
+    const s = mapperState[h];
+    return s && s.value;
+  }).length;
+  if (badge) badge.textContent = `${mappedCount}/${headers.length} mapped`;
+
+  container.innerHTML = headers.map(h => {
+    const st = mapperState[h] || { type: 'col', value: '' };
+    const isMapped = !!st.value;
+
+    const colSel = `<select class="mapper-col-select" id="msel-${CSS.escape(h)}"
+        onchange="setMapperRow('${h.replace(/'/g,"\\'")}','col',this.value)"
+        style="display:${st.type==='col'?'block':'none'}">
+      <option value="">— source column —</option>${colOpts}
+    </select>`;
+
+    const litInput = `<input type="text" class="mapper-literal-input" id="mlit-${CSS.escape(h)}"
+        placeholder="literal value…"
+        value="${esc(st.type==='literal'?st.value:'')}"
+        oninput="setMapperRow('${h.replace(/'/g,"\\'")}','literal',this.value)"
+        style="display:${st.type==='literal'?'block':'none'}"/>`;
+
+    const specialBtns = SPECIAL_MARKERS.map(m => {
+      const active = st.type==='special' && st.value===m.key;
+      return `<button class="mapper-special-btn${active?' '+m.cls:''}" id="msb-${CSS.escape(h)}-${m.key}"
+          onclick="setMapperRow('${h.replace(/'/g,"\\'")}','special','${m.key}')"
+          style="display:${st.type==='special'||!st.value?'inline-flex':'none'}">${m.label}</button>`;
+    }).join('');
+
+    const typeToggle = `<div class="mapper-type-toggle">
+      <button class="mapper-type-btn${st.type==='col'?' active':''}" onclick="switchMapperType('${h.replace(/'/g,"\\'")}','col')">Col</button>
+      <button class="mapper-type-btn${st.type==='literal'?' active-lit':''}" onclick="switchMapperType('${h.replace(/'/g,"\\'")}','literal')">Literal</button>
+      <button class="mapper-type-btn${st.type==='special'?' active-special':''}" onclick="switchMapperType('${h.replace(/'/g,"\\'")}','special')">Marker</button>
+    </div>`;
+
+    return `<div class="mapper-row ${isMapped?'mapped':'unmapped'}" id="mrow-${CSS.escape(h)}" data-header="${esc(h)}">
+      <div class="mapper-target" title="${esc(h)}">${esc(h)}</div>
+      <div class="mapper-value-area">
+        ${typeToggle}
+        ${colSel}
+        ${litInput}
+        <div class="mapper-special-btns" style="display:${st.type==='special'||!st.value?'flex':'none'}" id="mspecial-${CSS.escape(h)}">${specialBtns}</div>
+      </div>
+      <button class="mapper-clear-btn" onclick="clearMapperRow('${h.replace(/'/g,"\\'")}'))" title="Clear">✕</button>
+    </div>`;
+  }).join('');
+
+  // Restore select values (can't set in innerHTML for selects)
+  headers.forEach(h => {
+    const st = mapperState[h];
+    if (st?.type === 'col' && st.value) {
+      const sel = document.getElementById(`msel-${CSS.escape(h)}`);
+      if (sel) sel.value = st.value;
+    }
+  });
+}
+
+function switchMapperType(header, type) {
+  if (!mapperState[header]) mapperState[header] = { type, value: '' };
+  else { mapperState[header].type = type; mapperState[header].value = ''; }
+  rebuildMapper();
+  syncMapperToJson();
+}
+
+function setMapperRow(header, type, value) {
+  mapperState[header] = { type, value };
+  // Update mapped/unmapped class without full rebuild
+  const row = document.getElementById(`mrow-${CSS.escape(header)}`);
+  if (row) {
+    row.classList.toggle('mapped', !!value);
+    row.classList.toggle('unmapped', !value);
+  }
+  syncMapperToJson();
+  // Update badge
+  const headers = getTargetHeaders();
+  const mapped = headers.filter(h => mapperState[h]?.value).length;
+  const badge = document.getElementById('mapper-status-badge');
+  if (badge) badge.textContent = `${mapped}/${headers.length} mapped`;
+}
+
+function clearMapperRow(header) {
+  mapperState[header] = { type: 'col', value: '' };
+  rebuildMapper();
+  syncMapperToJson();
+}
+
+function setAllUnmapped(markerKey) {
+  const headers = getTargetHeaders();
+  headers.forEach(h => {
+    if (!mapperState[h]?.value) {
+      mapperState[h] = { type: 'special', value: markerKey };
+    }
+  });
+  rebuildMapper();
+  syncMapperToJson();
+}
+
+function filterMapper(q) {
+  const lq = q.toLowerCase();
+  document.querySelectorAll('.mapper-row').forEach(row => {
+    const h = row.dataset.header || '';
+    row.classList.toggle('hidden-row', !!q && !h.toLowerCase().includes(lq));
+  });
+}
+
+function syncMapperToJson() {
+  const headers = getTargetHeaders();
+  const obj = {};
+  headers.forEach(h => {
+    const st = mapperState[h];
+    if (!st || !st.value) return;
+    if (st.type === 'literal') obj[h] = `__LITERAL__:${st.value}`;
+    else obj[h] = st.value;
+  });
+  const ta = document.getElementById('map-json');
+  if (ta) {
+    ta.value = JSON.stringify(obj, null, 2);
+    // Clear any JSON error
+    const err = document.getElementById('json-err');
+    if (err) err.style.display = 'none';
+  }
+}
+
+function syncFromRaw() {
+  const ta = document.getElementById('map-json');
+  if (!ta) return;
+  let obj = {};
+  try {
+    obj = JSON.parse(ta.value || '{}');
+    const err = document.getElementById('json-err');
+    if (err) err.style.display = 'none';
+  } catch(e) {
+    const err = document.getElementById('json-err');
+    if (err) { err.style.display = 'block'; err.textContent = '⚠ ' + e.message; }
+    return;
+  }
+  // Push into mapper state
+  for (const [k, v] of Object.entries(obj)) {
+    mapperState[k] = classifyValue(String(v));
+  }
+  rebuildMapper();
+}
+
+function toggleRawJson() {
+  const card = document.getElementById('raw-json-card');
+  if (!card) return;
+  card.style.display = card.style.display === 'none' ? 'block' : 'none';
+}
+
+// Patch applyPreset to also sync mapper after preset load
+const _origApplyPreset = applyPreset;
+function applyPreset(name) {
+  _origApplyPreset(name);
+  // Clear old mapper state and rebuild from loaded JSON
+  const headers = getTargetHeaders();
+  headers.forEach(h => delete mapperState[h]);
+  syncFromRaw();
 }
 
 // ─── Standard summary ─────────────────────────────────────────────────────────
@@ -1140,6 +1425,29 @@ function renderOp(mode, ruleId, oi, op, cols) {
     params=`<label style="align-self:center;margin:0;text-transform:none">Decimal places:</label>
       <input type="number" value="${op.decimals||2}" min="0" max="10"
         onchange="updateOp('${mode}',${ruleId},${oi},'decimals',+this.value)" style="width:70px"/>`;
+  } else if(op.type==='math_op') {
+    params=`<div style="flex:1">
+      <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap">
+        <div style="flex:1;min-width:220px">
+          <label style="margin-bottom:3px">Expression <span style="color:var(--t3);font-weight:400;text-transform:none">(use <b style="color:var(--ac)">x</b> for cell value)</span></label>
+          <input type="text" placeholder="e.g.  x * 1.18   or   round(x / 100, 2)" value="${esc(op.expression||'')}"
+            oninput="updateOp('${mode}',${ruleId},${oi},'expression',this.value); previewMath(this, ${ruleId}, ${oi})"
+            style="width:100%;font-family:var(--mo);font-size:12px"/>
+        </div>
+        <div style="width:80px">
+          <label style="margin-bottom:3px">Round to</label>
+          <input type="number" placeholder="decimals" value="${op.decimals!=null?op.decimals:''}" min="0" max="10"
+            onchange="updateOp('${mode}',${ruleId},${oi},'decimals',this.value===''?null:+this.value)" style="width:100%"/>
+        </div>
+      </div>
+      <div id="math-preview-${ruleId}-${oi}" class="hint" style="margin-top:5px;font-family:var(--mo);display:flex;gap:12px;flex-wrap:wrap">
+        ${buildMathExamples(op.expression||'')}
+      </div>
+      <div class="hint" style="margin-top:4px;color:var(--t3)">
+        ✓ If expression fails for a cell (e.g. text value), original value is kept unchanged.
+        &nbsp;·&nbsp; Available: <code style="color:var(--ac)">abs sqrt log log10 ceil floor round min max pow pi e</code>
+      </div>
+    </div>`;
   } else if(op.type==='conditional') {
     const crs=(op.rules||[]);
     params=`<div style="flex:1">
@@ -1191,6 +1499,39 @@ function renderOp(mode, ruleId, oi, op, cols) {
 
 function updateOpMap(mode,ruleId,oi,val) {
   try { updateOp(mode,ruleId,oi,'map',JSON.parse(val)); } catch(e){}
+}
+
+// ─── Math Op helpers ──────────────────────────────────────────────────────────
+const MATH_PREVIEW_SAMPLES = [0, 1, 10, 50, 100, 250, 1000];
+function evalMathExpr(expr, x) {
+  const ns = {
+    x, abs: Math.abs, round: Math.round, sqrt: Math.sqrt,
+    log: Math.log, log10: Math.log10, ceil: Math.ceil, floor: Math.floor,
+    min: Math.min, max: Math.max, pow: Math.pow, pi: Math.PI, e: Math.E
+  };
+  // eslint-disable-next-line no-new-func
+  return Function(...Object.keys(ns), `"use strict"; return (${expr});`)(...Object.values(ns));
+}
+
+function buildMathExamples(expr) {
+  if (!expr.trim()) return '<span style="color:var(--t3)">Enter an expression above to see a live preview</span>';
+  const samples = [1, 10, 100, 1000];
+  const parts = samples.map(x => {
+    try {
+      const r = evalMathExpr(expr, x);
+      const disp = typeof r === 'number' ? (Number.isInteger(r) ? r : +r.toFixed(6)) : r;
+      return `<span><span style="color:var(--t3)">x=${x}</span> → <span style="color:var(--gr)">${disp}</span></span>`;
+    } catch(e) {
+      return `<span><span style="color:var(--t3)">x=${x}</span> → <span style="color:var(--re)">err</span></span>`;
+    }
+  });
+  return `<span style="color:var(--t2)">Preview:</span> ${parts.join(' &nbsp; ')}`;
+}
+
+function previewMath(inputEl, ruleId, oi) {
+  const expr = inputEl.value;
+  const previewEl = document.getElementById(`math-preview-${ruleId}-${oi}`);
+  if (previewEl) previewEl.innerHTML = buildMathExamples(expr);
 }
 
 function buildTxPayload(mode) {
@@ -1281,6 +1622,11 @@ async function importConfig(event) {
   sv('cfg-rto-src', s.rto_src     || 'UW Budget Cluster');
   sv('target-hdrs', s.target_hdrs || '');
   sv('map-json',    s.map_json    || '{}');
+
+  // Sync visual mapper from loaded JSON
+  const loadedHeaders = (s.target_hdrs||'').split('\n').map(h=>h.trim()).filter(Boolean);
+  loadedHeaders.forEach(h => delete mapperState[h]);
+  setTimeout(syncFromRaw, 50);
 
   // Restore std transformations
   S.txRules.std = (s.transformations || []).map((r,i) => ({
