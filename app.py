@@ -164,11 +164,13 @@ def read_excel_file(filepath, sheet_name, header_row, start_col):
     return sdf
 
 # ─── Standard grid processor ──────────────────────────────────────────────────
-def process_grid(source_df, mapping_config, rto_mapping=None):
+def process_grid(source_df, mapping_config, rto_mapping=None, passthrough_cols=None):
     th  = mapping_config.get('target_headers',[])
     cm  = mapping_config.get('column_mapping',{})
     rcs = mapping_config.get('rto_cluster_source','UW Budget Cluster')
     sv  = mapping_config.get('static_values',{})
+    # Only carry through cols that actually exist in source and aren't already in target
+    pt  = [c for c in (passthrough_cols or []) if c in source_df.columns and c not in th]
     seen=set(); avd=[]
     for name,_,_ in DETRIFF_RANGES:
         if name in source_df.columns and name not in seen:
@@ -180,12 +182,14 @@ def process_grid(source_df, mapping_config, rto_mapping=None):
                 val=row.get(rn)
                 if pd.isna(val): continue
                 ll,ul=get_dr(rn)
-                rows.append(_build_row(row,idx,source_df,th,cm,sv,rto_mapping,rcs,val,rn,ll,ul))
+                rows.append(_build_row(row,idx,source_df,th,cm,sv,rto_mapping,rcs,val,rn,ll,ul,pt))
         else:
-            rows.append(_build_row(row,idx,source_df,th,cm,sv,rto_mapping,rcs,None,None,None,None))
-    return pd.DataFrame(rows,columns=th) if rows else None
+            rows.append(_build_row(row,idx,source_df,th,cm,sv,rto_mapping,rcs,None,None,None,None,pt))
+    if not rows: return None
+    out_cols = th + pt
+    return pd.DataFrame(rows, columns=out_cols)
 
-def _build_row(row,idx,src,th,cm,sv,rtom,rcs,dval,rn,ll,ul):
+def _build_row(row,idx,src,th,cm,sv,rtom,rcs,dval,rn,ll,ul,passthrough_cols=None):
     nr={}
     for col in th:
         cl=col.lower().replace('*','').strip()
@@ -213,6 +217,9 @@ def _build_row(row,idx,src,th,cm,sv,rtom,rcs,dval,rn,ll,ul):
     uid='Unique Id'
     if uid in th and nr.get(uid)=='ANY':
         nr[uid]=f"row_{idx}_{rn}" if rn else f"row_{idx}"
+    # Carry passthrough source columns verbatim
+    for pc in (passthrough_cols or []):
+        nr[pc] = row.get(pc, None)
     return nr
 
 # ─── SK Finance processor ──────────────────────────────────────────────────────
@@ -500,9 +507,29 @@ def process():
         sdf=read_excel_file(d['filepath'],d.get('sheet_name','Sheet1'),
                             int(d.get('header_row',2)),int(d.get('start_col',2)))
         rtom=build_rto_mapping(d['rto_filepath']) if d.get('rto_filepath') and os.path.exists(d['rto_filepath']) else {}
-        rdf=process_grid(sdf,d.get('mapping_config',{}),rtom)
+        # Detect source-only columns referenced in conditional if_col — carry them
+        # through row expansion inside process_grid so row counts always match,
+        # then drop them after transformation so they never appear in the output.
+        real_target_headers = d.get('mapping_config',{}).get('target_headers',[])
+        passthrough_cols = []
+        if d.get('transformations'):
+            for t in d['transformations']:
+                for op in t.get('ops', []):
+                    if op.get('type') == 'conditional':
+                        for rule in op.get('rules', []):
+                            ic = rule.get('if_col')
+                            if ic and ic not in passthrough_cols:
+                                passthrough_cols.append(ic)
+
+        rdf=process_grid(sdf,d.get('mapping_config',{}),rtom,passthrough_cols=passthrough_cols)
         if rdf is None or len(rdf)==0: return jsonify({'error':'No data produced'}),400
-        if d.get('transformations'): rdf=apply_transformations(rdf,d['transformations'])
+
+        if d.get('transformations'):
+            rdf = apply_transformations(rdf, d['transformations'])
+            # Strip passthrough cols — keep only real target headers in output
+            if real_target_headers:
+                rdf = rdf[[c for c in real_target_headers if c in rdf.columns]]
+
         fn=f"{d.get('session_id','x')}_{secure_filename(d.get('output_name','output'))}.csv"
         op=os.path.join(OUTPUT_DIR,fn); rdf.to_csv(op,index=False)
         return jsonify({'success':True,'output_path':op,'output_filename':fn,'rows':len(rdf),
