@@ -1363,14 +1363,15 @@ function renderTxRules(mode) {
   const rules=S.txRules[mode];
   empty.style.display=rules.length?'none':'block';
   const cols=getColOptions(mode);
-  const colOpts=cols.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
-  container.innerHTML=rules.map(rule=>`
+  container.innerHTML=rules.map(rule=>{
+    const ruleColOpts=cols.map(c=>'<option value="'+esc(c)+'"'+(rule.column===c?' selected':'')+'>'+esc(c)+'</option>').join('');
+    return `
     <div class="tx-rule fade">
       <div class="tx-header">
         <div class="col-sel">
           <label style="margin-bottom:4px">Target Column</label>
           <select onchange="updateRule('${mode}',${rule.id},'column',this.value)" style="width:100%">
-            <option value="">— select column —</option>${colOpts}
+            <option value="">— select column —</option>${ruleColOpts}
           </select>
         </div>
         <button class="del-btn" onclick="removeTxRule('${mode}',${rule.id})" title="Remove rule">✕</button>
@@ -1381,12 +1382,9 @@ function renderTxRules(mode) {
       <div class="add-op-row">
         <button class="btn btn-sec btn-xs" onclick="addOp('${mode}',${rule.id})">+ Add Operation</button>
       </div>
-    </div>`).join('');
-  // Restore selected values
-  rules.forEach(rule=>{
-    const sel=container.querySelector(`[onchange="updateRule('${mode}',${rule.id},'column',this.value)"]`);
-    if(sel&&rule.column) sel.value=rule.column;
-  });
+    </div>`;
+  }).join('');
+
 }
 
 function renderOp(mode, ruleId, oi, op, cols) {
@@ -1456,7 +1454,7 @@ function renderOp(mode, ruleId, oi, op, cols) {
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
             <div><label style="margin-bottom:3px">IF column</label>
               <select onchange="updateCondRule('${mode}',${ruleId},${oi},${crIdx},'if_col',this.value)" style="width:150px">
-                <option value="">— col —</option>${colOpts}</select></div>
+                <option value="">— col —</option>${cols.map(c=>'<option value="'+esc(c)+'"'+(cr.if_col===c?' selected':'')+'>'+esc(c)+'</option>').join('')}</select></div>
             <div><label style="margin-bottom:3px">Operator</label>
               <select onchange="updateCondRule('${mode}',${ruleId},${oi},${crIdx},'if_op',this.value)" style="width:110px">
                 ${['eq','neq','contains','empty','notempty'].map(o=>`<option value="${o}"${cr.if_op===o?' selected':''}>${o}</option>`).join('')}</select></div>
@@ -1468,7 +1466,7 @@ function renderOp(mode, ruleId, oi, op, cols) {
           <div style="margin-top:10px">
             <div><label style="margin-bottom:3px">THEN update column</label>
               <select onchange="updateCondRule('${mode}',${ruleId},${oi},${crIdx},'then_col',this.value)" style="width:200px">
-                <option value="">— col to update —</option>${colOpts}</select></div>
+                <option value="">— col to update —</option>${cols.map(c=>'<option value="'+esc(c)+'"'+(cr.then_col===c?' selected':'')+'>'+esc(c)+'</option>').join('')}</select></div>
             ${(cr.then_rules||[]).map((tr,trIdx)=>`
               <div class="cond-then-row">
                 <span style="color:var(--t3);font-size:11px;font-family:var(--mo);white-space:nowrap">when value</span>
