@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, send_file, render_template
 import pandas as pd
 import numpy as np
-import os, json, uuid, traceback
+import os, json, uuid, traceback, requests
 from werkzeug.utils import secure_filename
 from openpyxl import load_workbook
 
@@ -12,6 +12,12 @@ UPLOAD_DIR = os.path.join(os.path.dirname(__file__), 'uploads')
 OUTPUT_DIR = os.path.join(os.path.dirname(__file__), 'outputs')
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+# ─── AI Assistant (Groq) config ────────────────────────────────────────────────
+# Set your key: export GROQ_API_KEY="gsk_...."   (free, no card — get one at https://console.groq.com/keys)
+GROQ_API_KEY  = os.environ.get('GROQ_API_KEY', 'GROG_API_KEY')
+GROQ_MODEL    = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
+GROQ_API_URL  = 'https://api.groq.com/openai/v1/chat/completions'
 
 ALLOWED_EXTENSIONS = {'xlsx', 'xlsb', 'xls', 'csv'}
 def allowed_file(f): return '.' in f and f.rsplit('.',1)[1].lower() in ALLOWED_EXTENSIONS
@@ -459,6 +465,150 @@ def _default_sk_mapping():
         'ncb_percentage_ll':'__ncb_ll__','ncb_percentage_ul':'__ncb_ul__',
         'body_type':'__LITERAL__:ANY','txt_motor_nonmotor':'__LITERAL__:Motor',
     }
+
+# ─── AI Assistant ──────────────────────────────────────────────────────────────
+AI_ACTION_TYPES = (
+    'set_mapping', 'set_target_headers', 'add_transformation',
+    'remove_transformation', 'navigate', 'none'
+)
+
+def build_ai_system_prompt(context, has_config):
+    """Builds the system prompt sent to the LLM, grounding it in this portal's
+    actual data model so it never invents features that don't exist."""
+    mode = context.get('mode', 'std')
+    tx_types_doc = (
+        "case{value:upper|lower|title}, trim{}, strip_chars{chars}, "
+        "replace{find,with}, regex_replace{pattern,with}, value_map{map:{old:new}}, "
+        "prefix{value}, suffix{value}, default_if_empty{value}, "
+        "number_format{decimals}, math_op{expression (python expr using x),decimals}, "
+        "conditional{rules:[{if_col,if_op:eq|neq|contains|empty|notempty,if_val,then_col,"
+        "then_rules:[{when_op:eq|contains|empty|any,when_val,set_val}]}]}"
+    )
+    special_markers_doc = (
+        "__LITERAL__:value (fixed constant), __DETRIFF_VALUE__ (the detriff column's value for that row), "
+        "__RTO_CODES__ (comma list of RTO codes from the RTO cluster file), "
+        "__UNIQUE_ID__ (auto generated row id), __DETRIFF_RANGE__ (the detriff band name, e.g. 6-10)"
+    )
+    ctx_json = json.dumps({
+        'mode': mode,
+        'sheet_name': context.get('sheet_name'),
+        'target_headers': context.get('target_headers', []),
+        'column_mapping': context.get('column_mapping', {}),
+        'source_columns': (context.get('source_columns') or [])[:80],
+        'transformations': context.get('transformations', []),
+        'has_initial_config': has_config,
+    }, ensure_ascii=False)
+
+    return f"""You are the in-app AI Assistant for "Grid Processor Portal", a tool that converts \
+insurance/OEM commission grid spreadsheets into standardized target CSV outputs.
+
+The portal has two modes, each a 5-step wizard:
+- Standard Grid (mode 'std'): 1 Upload Files, 2 Configure Source (sheet/header row/start col), \
+3 Column Mapping (Target Headers + Column Mapping JSON, mapping each target header to a source \
+column name, a __LITERAL__:value, or a special marker), 4 Transformations (per-column op chains), \
+5 Process & Export.
+- SK Finance (mode 'sk'): 1 Upload Files, 2 Sheet Structure, 3 Output Mapping, 4 Transformations, \
+5 Process & Export. This mode has its own fixed cell-based config (agent code cell, payment basis \
+row, etc.) rather than a target_headers/column_mapping pair.
+
+Special markers usable as a mapping value: {special_markers_doc}
+Transformation operation types and params: {tx_types_doc}
+Built-in presets exist for common OEMs (TATA PV, TATA CV, Banca Motor, Hyundai, Nissan/Renault, \
+OEM Other) — each is a ready-made target_headers + column_mapping pair the user can pick from a \
+preset grid in Step 2/3 instead of typing config by hand.
+
+The user's CURRENT state in the app (ground truth — do not assume anything not shown here):
+{ctx_json}
+
+CRITICAL RULE — initial config gate:
+The user can only ask you to EDIT config (mapping, target headers, or transformations) once they \
+already have a basic initial config loaded — meaning target_headers and column_mapping are non-empty \
+(std mode) or they've completed Sheet Structure/Output Mapping (sk mode). "has_initial_config" above \
+tells you whether that's true right now.
+- If has_initial_config is false and the user asks you to edit/add/change something, do NOT return \
+any edit actions. Instead explain kindly that they should first pick a preset or fill in Target \
+Headers + Column Mapping in Step 3 (or complete Step 2/3 in SK Finance mode), and offer a "navigate" \
+action to take them there.
+- If has_initial_config is true, you may return concrete edit actions.
+- You can ALWAYS answer general "how do I..." / "where is..." questions about using the portal, \
+regardless of has_initial_config — that never requires an initial config.
+
+You must reply with ONLY a single JSON object (no markdown fences, no prose outside it) matching \
+exactly this shape:
+{{"reply": "<short, friendly, concrete answer to show the user, 1-6 sentences>",
+  "actions": [ {{"type": "<one of {', '.join(AI_ACTION_TYPES)}>", ...fields}} ]}}
+
+Action field shapes:
+- set_mapping: {{"type":"set_mapping","target_header":"<exact target header text>","value":"<source column, __LITERAL__:x, or special marker>"}}
+- set_target_headers: {{"type":"set_target_headers","headers":["Header One*","Header Two*", ...]}} (full replacement list)
+- add_transformation: {{"type":"add_transformation","column":"<target header>","op":{{"type":"<tx op type>", ...op params}}}}
+- remove_transformation: {{"type":"remove_transformation","column":"<target header>","op_index":0}}
+- navigate: {{"type":"navigate","mode":"std|sk","panel":1-5}}
+- none: {{"type":"none"}} — use when no state change is needed (pure Q&A)
+
+Only ever use column names that exist in target_headers or source_columns above — never invent one. \
+Keep "actions" as an empty array when you're just answering a question. Keep replies concise and \
+concrete; say exactly what you changed (e.g. which header, which op) rather than being vague."""
+
+
+@app.route('/api/ai/status')
+def ai_status():
+    return jsonify({'configured': bool(GROQ_API_KEY), 'model': GROQ_MODEL})
+
+
+@app.route('/api/ai/chat', methods=['POST'])
+def ai_chat():
+    try:
+        if not GROQ_API_KEY:
+            return jsonify({'error': 'AI Assistant is not configured. Ask your admin to set the '
+                                      'GROQ_API_KEY environment variable on the server (free key at '
+                                      'console.groq.com/keys), then restart it.'}), 400
+        d = request.json or {}
+        user_msg = (d.get('message') or '').strip()
+        if not user_msg:
+            return jsonify({'error': 'Empty message'}), 400
+        history = d.get('history') or []
+        context = d.get('context') or {}
+        mode = context.get('mode', 'std')
+
+        if mode == 'sk':
+            has_config = bool(context.get('sk_has_config'))
+        else:
+            has_config = bool(context.get('target_headers')) and bool(context.get('column_mapping'))
+
+        messages = [{'role': 'system', 'content': build_ai_system_prompt(context, has_config)}]
+        for h in history[-10:]:
+            if h.get('role') in ('user', 'assistant') and h.get('content'):
+                messages.append({'role': h['role'], 'content': str(h['content'])[:4000]})
+        messages.append({'role': 'user', 'content': user_msg})
+
+        resp = requests.post(GROQ_API_URL,
+            headers={'Authorization': f'Bearer {GROQ_API_KEY}', 'Content-Type': 'application/json'},
+            json={'model': GROQ_MODEL, 'messages': messages, 'temperature': 0.2,
+                  'response_format': {'type': 'json_object'}},
+            timeout=60)
+        if resp.status_code >= 400:
+            return jsonify({'error': f'Groq API error ({resp.status_code}): {resp.text[:300]}'}), 502
+        data = resp.json()
+        raw = data['choices'][0]['message']['content']
+        try:
+            parsed = json.loads(raw)
+        except Exception:
+            parsed = {'reply': raw, 'actions': []}
+
+        actions = parsed.get('actions') or []
+        if not isinstance(actions, list):
+            actions = []
+        actions = [a for a in actions if isinstance(a, dict) and a.get('type') in AI_ACTION_TYPES]
+        # Hard-enforce the config gate server-side too, don't just trust the model.
+        if not has_config:
+            actions = [a for a in actions if a.get('type') in ('navigate', 'none')]
+
+        return jsonify({'reply': parsed.get('reply', ''), 'actions': actions, 'has_config': has_config})
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': f'Could not reach Groq API: {e}'}), 502
+    except Exception as e:
+        return jsonify({'error': str(e), 'trace': traceback.format_exc()}), 500
 
 # ─── API Routes ───────────────────────────────────────────────────────────────
 @app.route('/')
