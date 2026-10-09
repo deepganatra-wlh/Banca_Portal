@@ -184,6 +184,15 @@ Same transformation engine as Standard Grid — see above.
 
 ---
 
+## Quality — Grid Checker & Checker Profiles
+
+After processing and finishing the manual changes, open **Quality → Grid Checker**, upload the final CSV and run.
+Every output row is traced to its source cell; generic checks and remark rules (disc caps, capping sentences,
+"PTS will be GWP", vehicle age, CC text…) are applied per use case. Profiles are edited under
+**Quality → Checker Profiles**. Details: `README_checker.md`.
+
+---
+
 ## Detriff Ranges
 
 The processor recognises the following range names as column headers in the source sheet and expands each into a separate output row:
@@ -213,6 +222,8 @@ The processor recognises the following range names as column headers in the sour
 ```
 grid_portal/
 ├── app.py               # Flask backend — all processing, transformation, and API logic
+├── vertical_checker.py  # Grid checker (+ vc_core / vc_checks / vc_reconcile / vc_profiles)
+├── checker_profiles/    # One checker profile per use case (JSON)
 ├── templates/
 │   └── index.html       # Full portal UI (both modes, all steps)
 ├── uploads/             # Temp uploaded files (auto-created)

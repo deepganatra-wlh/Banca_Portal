@@ -1,0 +1,1169 @@
+{
+ "name": "TATA PV",
+ "version": 1,
+ "_about": "Starter profile built from the portal preset \"TATA PV\" and the Sept-26 source file. Items marked CONFIRM / SET PER USE CASE need a decision.",
+ "expected_columns": [
+  "Version Id*",
+  "Oem Type*",
+  "Pol Agent Code*",
+  "Primary Agent Code*",
+  "Supplier Code*",
+  "Vehicle Type*",
+  "Add On Premium Flag*",
+  "Biz Mix*",
+  "Model*",
+  "Two Wheeler Category*",
+  "Type Of Business*",
+  "Tata Vehicle Age Ll*",
+  "Tata Vehicle Age Ul*",
+  "Nop Ll*",
+  "Nop Ul*",
+  "Total Gwp Ll*",
+  "Total Gwp Ul*",
+  "Detriff Discount Ll*",
+  "Detriff Discount Ul*",
+  "Cubic Capacity Ll*",
+  "Cubic Capacity Ul*",
+  "Gross Vehicle Weight Ll*",
+  "Gross Vehicle Weight Ul*",
+  "Tatacvpv Misp*",
+  "Flat Amnt*",
+  "Outgo*",
+  "Tatacvpv Capping*",
+  "Tatacvpv Comm Prct*",
+  "Od Rate*",
+  "Tp Rate*",
+  "Tata Provision Rate*",
+  "Tata Provision Outgo*",
+  "Tata Fuel Type*",
+  "Tata Identifire*",
+  "Rto Code*",
+  "Unique Id"
+ ],
+ "source": {
+  "sheet": "TATA PV",
+  "header_row": 3,
+  "data_start_row": 4,
+  "start_col": 1,
+  "header_cells": {},
+  "band_map": {
+   "0": [
+    0,
+    0.999
+   ],
+   "0-5": [
+    1.0,
+    5.001
+   ],
+   "1-5": [
+    1.001,
+    5.001
+   ],
+   "0.0": [
+    0,
+    1.001
+   ],
+   "6-10": [
+    5.001,
+    10.001
+   ],
+   "11-15": [
+    10.001,
+    15.001
+   ],
+   "16-20": [
+    15.001,
+    20.001
+   ],
+   "21-25": [
+    20.001,
+    25.001
+   ],
+   "26-30": [
+    25.001,
+    30.001
+   ],
+   "31-35": [
+    30.001,
+    35.001
+   ],
+   "36-40": [
+    35.001,
+    40.001
+   ],
+   "41-45": [
+    40.001,
+    45.001
+   ],
+   "46-50": [
+    45.001,
+    50.001
+   ],
+   "51-55": [
+    50.001,
+    55.001
+   ],
+   "56-60": [
+    55.001,
+    60.001
+   ],
+   "61-65": [
+    60.001,
+    65.001
+   ],
+   "66-70": [
+    65.001,
+    70.001
+   ],
+   "71-75": [
+    70.001,
+    75.001
+   ],
+   "76-80": [
+    75.001,
+    80.001
+   ],
+   "81-85": [
+    80.001,
+    85.001
+   ],
+   "86-90": [
+    85.001,
+    90.001
+   ],
+   "91-95": [
+    90.001,
+    95.001
+   ],
+   "96-100": [
+    95.001,
+    100.001
+   ]
+  },
+  "skip_rows_where": []
+ },
+ "reconcile": {
+  "enabled": true,
+  "output_band": {
+   "ll": "Detriff Discount Ll*",
+   "ul": "Detriff Discount Ul*"
+  },
+  "rate": {
+   "output": "Tatacvpv Comm Prct*",
+   "scale": 100,
+   "tolerance": 0.0001,
+   "explain_by": "Payment Type",
+   "scale_rules": [
+    {
+     "when": [
+      {
+       "col": "Payment Type",
+       "op": "eq",
+       "value": "NOP"
+      }
+     ],
+     "scale": 1,
+     "output": "Tatacvpv Comm Prct*",
+     "note": "NOP cells are ₹ amounts, not ×100. SET PER USE CASE: the column that receives them (this template has Flat Amnt*)."
+    }
+   ],
+   "_note": "Source rates are fractions (0.15); the output holds 15 (confirmed)."
+  },
+  "tokens": {
+   "System Commission": {
+    "policy": "skip",
+    "output": ""
+   },
+   "IRDA": {
+    "policy": "skip",
+    "output": ""
+   }
+  },
+  "unknown_text_policy": "optional",
+  "negative_policy": "skip",
+  "keys": [
+   {
+    "output": "Biz Mix*",
+    "source": "LOB",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Model*",
+    "source": "Model",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Supplier Code*",
+    "source": "Dealer Name",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Tata Fuel Type*",
+    "source": "Fuel Type",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Type Of Business*",
+    "source": "Old/New",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Vehicle Type*",
+    "source": "VEHICLETYPE",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Rto Code*",
+    "source": "UW Budget Cluster",
+    "via": "rto",
+    "blank_as": "ANY",
+    "note": "Cluster → RTO codes through the RTO file. Without the file this key is skipped."
+   }
+  ],
+  "compare": [
+   {
+    "output": "Outgo*",
+    "source": "Payment Type",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Tatacvpv Capping*",
+    "source": "Capping Maximum Limit %",
+    "accept": {},
+    "blank_as": "ANY",
+    "note": "Fractions in source (0.6). Set scale 100 if the output holds 60."
+   },
+   {
+    "output": "Tatacvpv Misp*",
+    "source": "System CommissionExtra",
+    "accept": {},
+    "blank_as": "ANY"
+   }
+  ],
+  "severity": {
+   "missing": "ERROR",
+   "extra": "ERROR",
+   "rate": "ERROR",
+   "compare": "ERROR",
+   "skip": "ERROR",
+   "collision": "ERROR"
+  }
+ },
+ "checks": [
+  {
+   "id": "O01",
+   "title": "Template columns",
+   "type": "columns",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "order": "strict",
+    "allow_extra": false
+   },
+   "fix": ""
+  },
+  {
+   "id": "O02",
+   "title": "No blank cells",
+   "type": "not_blank",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "*"
+    ]
+   },
+   "fix": "Unmapped columns default to ANY in the portal — blanks come from manual edits."
+  },
+  {
+   "id": "O03",
+   "title": "No placeholder values",
+   "type": "no_placeholder",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "*"
+    ],
+    "values": [
+     "-",
+     "--",
+     "nan",
+     "NaN",
+     "None",
+     "#N/A",
+     "N/A",
+     "#REF!",
+     "#VALUE!",
+     "NULL",
+     "`"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O04",
+   "title": "Range columns are numbers",
+   "type": "numeric",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Detriff Discount Ll*",
+     "Detriff Discount Ul*",
+     "Cubic Capacity*",
+     "Gross Vehicle Weight*",
+     "Total Gwp*"
+    ],
+    "allow_tokens": []
+   },
+   "fix": "Detriff/CC/GVW/GWP limits must be numeric."
+  },
+  {
+   "id": "O05",
+   "title": "Other LL/UL columns are numbers (or ANY)",
+   "type": "numeric",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "* Ll*",
+     "* Ul*",
+     "!Detriff*",
+     "!Cubic Capacity*",
+     "!Gross Vehicle Weight*",
+     "!Total Gwp*"
+    ],
+    "allow_tokens": [
+     "ANY"
+    ]
+   },
+   "fix": "Text like '< 5' or 'Yes' copied into LL/UL — split it into numbers (manual step)."
+  },
+  {
+   "id": "O06",
+   "title": "Lower limit ≤ upper limit",
+   "type": "ll_ul",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "pairs": [],
+    "ll_suffix": " Ll*",
+    "ul_suffix": " Ul*",
+    "allow_equal": true,
+    "skip_tokens": [
+     "ANY"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O07",
+   "title": "Rate is a number",
+   "type": "numeric",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Tatacvpv Comm Prct*"
+    ],
+    "allow_tokens": []
+   },
+   "fix": "Text in the rate column (e.g. 'System Commission', formulas) — such cells must not reach the output."
+  },
+  {
+   "id": "O23",
+   "title": "No 'System Commission' or 'IRDA' anywhere in the output",
+   "type": "no_placeholder",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "*"
+    ],
+    "values": [
+     "System Commission",
+     "IRDA"
+    ]
+   },
+   "fix": "System Commission and IRDA rows must be removed from the output."
+  },
+  {
+   "id": "O24",
+   "title": "Rate is not negative",
+   "type": "range",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Tatacvpv Comm Prct*"
+    ],
+    "min": "0",
+    "max": "",
+    "allow_tokens": []
+   },
+   "fix": "Negative commission means IRDA minimum applies — such rows must not be in the output."
+  },
+  {
+   "id": "O08",
+   "title": "Percentage rate within 0–100",
+   "type": "range",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Tatacvpv Comm Prct*"
+    ],
+    "min": "0",
+    "max": "100",
+    "allow_tokens": []
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "Outgo*",
+     "op": "in",
+     "value": [
+      "GWP",
+      "OD",
+      "TP"
+     ]
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "O09",
+   "title": "Percentage rate below 1 — ×100 probably missing",
+   "type": "range",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Tatacvpv Comm Prct*"
+    ],
+    "min": "1",
+    "max": "",
+    "allow_tokens": []
+   },
+   "fix": "Add math_op x*100 on the rate column (Transformations).",
+   "where": [
+    {
+     "col": "Outgo*",
+     "op": "in",
+     "value": [
+      "GWP",
+      "OD",
+      "TP"
+     ]
+    },
+    {
+     "col": "Tatacvpv Comm Prct*",
+     "op": "gt",
+     "value": 0
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "O10",
+   "title": "Rate has float artefacts",
+   "type": "max_decimals",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Tatacvpv Comm Prct*"
+    ],
+    "decimals": 4
+   },
+   "fix": ""
+  },
+  {
+   "id": "O13",
+   "title": "Same criteria, different rate",
+   "type": "conflict",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "value_columns": [
+     "Tatacvpv Comm Prct*",
+     "Outgo*"
+    ],
+    "ignore_columns": [
+     "Unique Id",
+     "*Remarks*"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O14",
+   "title": "Exact duplicate rows",
+   "type": "duplicates",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "ignore_columns": [
+     "Unique Id"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O15",
+   "title": "Discount bands",
+   "type": "band_coverage",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "ll": "Detriff Discount Ll*",
+    "ul": "Detriff Discount Ul*",
+    "ignore_columns": [
+     "Unique Id",
+     "*Remarks*"
+    ],
+    "value_columns": [
+     "Tatacvpv Comm Prct*",
+     "Outgo*"
+    ],
+    "min": "0",
+    "max": "100.001",
+    "gaps": "WARN",
+    "overlaps": "ERROR",
+    "tolerance": 0.0005
+   },
+   "fix": ""
+  },
+  {
+   "id": "O20",
+   "title": "Changes vs previous grid",
+   "type": "reference_diff",
+   "target": "output",
+   "severity": "INFO",
+   "enabled": true,
+   "params": {
+    "key_columns": [],
+    "value_columns": [
+     "Tatacvpv Comm Prct*",
+     "Outgo*"
+    ],
+    "ignore_columns": [
+     "Unique Id",
+     "Version Id*"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O11",
+   "title": "Outgo value known",
+   "type": "allowed_values",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Outgo*",
+    "values": [
+     "D+C",
+     "D+C+M",
+     "NOP",
+     "OD"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "Values seen in the Sept-26 source. Extend the list when a new payment type appears."
+  },
+  {
+   "id": "O12",
+   "title": "NOP rows carry an amount, not a %",
+   "type": "rule",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "if": [
+     {
+      "col": "Outgo*",
+      "op": "eq",
+      "value": "NOP"
+     },
+     {
+      "col": "Tatacvpv Comm Prct*",
+      "op": "numeric"
+     }
+    ],
+    "then": [
+     {
+      "col": "Tatacvpv Comm Prct*",
+      "op": "gte",
+      "value": 1
+     }
+    ]
+   },
+   "fix": "NOP = per-policy amount (e.g. 2500). CONFIRM whether it belongs in the flat-amount column."
+  },
+  {
+   "id": "O16",
+   "title": "Unique Id is unique",
+   "type": "unique",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Unique Id"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O17",
+   "title": "Version Id",
+   "type": "single_value",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "column": "Version Id*",
+    "expected": "tatacvpv_Grid_3"
+   },
+   "fix": ""
+  },
+  {
+   "id": "O18a",
+   "title": "Fixed value: Add On Premium Flag*",
+   "type": "single_value",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Add On Premium Flag*",
+    "expected": "No"
+   },
+   "fix": ""
+  },
+  {
+   "id": "O18b",
+   "title": "Fixed value: Oem Type*",
+   "type": "single_value",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Oem Type*",
+    "expected": "TMIBASL"
+   },
+   "fix": ""
+  },
+  {
+   "id": "O18c",
+   "title": "Fixed value: Pol Agent Code*",
+   "type": "single_value",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Pol Agent Code*",
+    "expected": "BRC0000286"
+   },
+   "fix": ""
+  },
+  {
+   "id": "O18d",
+   "title": "Fixed value: Primary Agent Code*",
+   "type": "single_value",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Primary Agent Code*",
+    "expected": "CVPV01234"
+   },
+   "fix": ""
+  },
+  {
+   "id": "O18e",
+   "title": "Fixed value: Tata Identifire*",
+   "type": "single_value",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Tata Identifire*",
+    "expected": "TATA PV"
+   },
+   "fix": ""
+  },
+  {
+   "id": "O18f",
+   "title": "Fixed value: Total Gwp Ll*",
+   "type": "single_value",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Total Gwp Ll*",
+    "expected": "-10000000"
+   },
+   "fix": ""
+  },
+  {
+   "id": "O18g",
+   "title": "Fixed value: Total Gwp Ul*",
+   "type": "single_value",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Total Gwp Ul*",
+    "expected": "10000000"
+   },
+   "fix": ""
+  },
+  {
+   "id": "O19",
+   "title": "RTO codes filled",
+   "type": "rule",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "if": [],
+    "then": [
+     {
+      "col": "Rto Code*",
+      "op": "not_any"
+     }
+    ]
+   },
+   "fix": "Rto Code is ANY — RTO file not uploaded/applied in Step 1."
+  },
+  {
+   "id": "O21",
+   "title": "Type Of Business value known",
+   "type": "allowed_values",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Type Of Business*",
+    "values": [
+     "ANY",
+     "New",
+     "Old",
+     "Renewal, Roll Over"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "S01",
+   "title": "Percentage rate cells: fractions 0–1 or known token",
+   "type": "band_cells",
+   "target": "source",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "allowed_tokens": [
+     "System Commission"
+    ],
+    "min": "0",
+    "max": "1",
+    "cap_ul": ""
+   },
+   "fix": "Free text or values above 1 in a % row need manual handling before conversion.",
+   "where": [
+    {
+     "col": "Payment Type",
+     "op": "in",
+     "value": [
+      "GWP",
+      "OD",
+      "TP",
+      "System Commission"
+     ]
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S02",
+   "title": "Other payment types: rate cells readable",
+   "type": "band_cells",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "allowed_tokens": [
+     "System Commission"
+    ],
+    "min": "0",
+    "max": "",
+    "cap_ul": ""
+   },
+   "fix": "Mixed payment types (OD & D+C, GWP & NOP…) hold formulas — split them by hand and verify.",
+   "where": [
+    {
+     "col": "Payment Type",
+     "op": "not_in",
+     "value": [
+      "GWP",
+      "OD",
+      "TP",
+      "System Commission"
+     ]
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S05",
+   "title": "Unique Sr. No. is unique",
+   "type": "unique",
+   "target": "source",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Unique Sr. No. for the month"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "S06",
+   "title": "LOB and Payment Type filled",
+   "type": "not_blank",
+   "target": "source",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "LOB",
+     "Payment Type"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "S03",
+   "title": "No rate above the disc cap in Special Remarks",
+   "type": "band_cells",
+   "target": "source",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "allowed_tokens": [
+     "System Commission"
+    ],
+    "min": "",
+    "max": "",
+    "cap_ul": "={1}+0.001"
+   },
+   "fix": "The remark caps the discount, but a rate is filled in a band above it — ask the grid owner.",
+   "where": [
+    {
+     "col": "Special Remarks",
+     "op": "regex",
+     "value": "upto disc (\\d+(?:\\.\\d+)?)\\s*%"
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S045",
+   "title": "Source Old/New value known",
+   "type": "allowed_values",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Old/New",
+    "values": [
+     "All",
+     "New",
+     "Old"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "Old/New",
+     "op": "not_empty"
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S046",
+   "title": "Source NCB (Y/N) value known",
+   "type": "allowed_values",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "NCB (Y/N)",
+    "values": [
+     "Yes",
+     "No"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "NCB (Y/N)",
+     "op": "not_empty"
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S047",
+   "title": "Source System CommissionExtra value known",
+   "type": "allowed_values",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "System CommissionExtra",
+    "values": [
+     "Yes",
+     "No"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "System CommissionExtra",
+     "op": "not_empty"
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S048",
+   "title": "Source Capping Basis value known",
+   "type": "allowed_values",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Capping Basis",
+    "values": [
+     "OD",
+     "GWP",
+     "TP",
+     "Flat amount"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "Capping Basis",
+     "op": "not_empty"
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S049",
+   "title": "Source Fuel Type value known",
+   "type": "allowed_values",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Fuel Type",
+    "values": [
+     "Petrol",
+     "Diesel",
+     "Electric",
+     "CNG",
+     "LPG",
+     "Other than Electric",
+     "Petrol/CNG"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "Fuel Type",
+     "op": "not_empty"
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S07",
+   "title": "Capping text is covered by a source rule",
+   "type": "rule",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "if": [
+     {
+      "col": "Capping Maximum Limit %",
+      "op": "not_numeric"
+     }
+    ],
+    "then": [
+     {
+      "col": "Capping Maximum Limit %",
+      "op": "regex",
+      "value": "Maximum \\d+% on OD if Disc is <=\\s*\\d+%|commission limit is [\\d,]+"
+     }
+    ],
+    "then_match": "all"
+   },
+   "fix": "New capping sentence — add a source rule that checks how it was converted."
+  }
+ ],
+ "source_rules": [
+  {
+   "id": "RM01",
+   "title": "Disc cap from Special Remarks (\"Grid applicable upto disc N%\")",
+   "enabled": true,
+   "severity": "ERROR",
+   "when": [
+    {
+     "col": "Special Remarks",
+     "op": "regex",
+     "value": "upto disc (\\d+(?:\\.\\d+)?)\\s*%"
+    }
+   ],
+   "match": "all",
+   "effects": {
+    "cap_band_ul": "={1}+0.001"
+   },
+   "expect": [
+    {
+     "band": {},
+     "conds": [
+      {
+       "col": "Detriff Discount Ul*",
+       "op": "lte",
+       "value": "={1}+0.001"
+      }
+     ]
+    }
+   ],
+   "fix": "Bands above the cap must be dropped and the band containing the cap must end at cap+0.001 (e.g. 86-90 → 85.001–89.001)."
+  },
+  {
+   "id": "RM02",
+   "title": "Capping sentence: different cap up to / above a discount",
+   "enabled": true,
+   "severity": "ERROR",
+   "when": [
+    {
+     "col": "Capping Maximum Limit %",
+     "op": "regex",
+     "value": "Maximum (\\d+)% on OD if Disc is <=\\s*(\\d+)%.*?Maximum (\\d+)%"
+    }
+   ],
+   "match": "all",
+   "effects": {},
+   "expect": [
+    {
+     "band": {
+      "ul_lte": "={2}+0.001"
+     },
+     "conds": [
+      {
+       "col": "Tatacvpv Capping*",
+       "op": "eq",
+       "value": "={1}/100"
+      }
+     ]
+    },
+    {
+     "band": {
+      "ll_gte": "={2}+0.001"
+     },
+     "conds": [
+      {
+       "col": "Tatacvpv Capping*",
+       "op": "eq",
+       "value": "={3}/100"
+      }
+     ]
+    }
+   ],
+   "fix": "Split the row at the discount in the sentence and set the cap per part. CONFIRM the scale: rule expects fractions (0.65) like the other cappings."
+  },
+  {
+   "id": "RM07",
+   "title": "Xenon models: no commission beyond System Commission (Remarks 2)",
+   "enabled": true,
+   "severity": "ERROR",
+   "when": [
+    {
+     "col": "Model",
+     "op": "contains",
+     "value": "XENON"
+    }
+   ],
+   "match": "all",
+   "effects": {},
+   "expect": [
+    {
+     "band": {},
+     "conds": [
+      {
+       "col": "Tatacvpv Comm Prct*",
+       "op": "not_gt",
+       "value": 0
+      }
+     ]
+    }
+   ],
+   "fix": "No additional commission for TATA Xenon models (w.e.f. Dec-23)."
+  },
+  {
+   "id": "RM20",
+   "title": "New / modified rows this month are in the output",
+   "enabled": true,
+   "severity": "INFO",
+   "when": [
+    {
+     "col": "Entry type",
+     "op": "regex",
+     "value": "New Addition|modified"
+    }
+   ],
+   "match": "all",
+   "effects": {},
+   "expect": [],
+   "fix": "Coverage only: missing rows are reported by R05."
+  }
+ ]
+}

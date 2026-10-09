@@ -272,6 +272,39 @@ tr:hover td{background:rgba(255,255,255,.02);}
   .ai-panel{right:10px;left:10px;width:auto;bottom:80px;}
   .ai-fab{right:16px;bottom:16px;}
 }
+
+/* ── Vertical grid checker ── */
+.vc-opt{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--tx);cursor:pointer;text-transform:none;letter-spacing:0;font-family:var(--fn);}
+.vc-verdict{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--r2);border:1px solid;margin-bottom:14px;}
+.vc-verdict b{font-size:17px;}
+.vc-verdict .v-sub{font-size:11px;font-family:var(--mo);opacity:.85;margin-top:3px;}
+.vc-verdict .v-ic{width:38px;height:38px;border-radius:50%;border:2px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:800;flex-shrink:0;}
+.v-fail{background:rgba(247,79,79,.07);border-color:rgba(247,79,79,.35);color:var(--re);}
+.v-warn{background:rgba(247,201,79,.07);border-color:rgba(247,201,79,.35);color:var(--ye);}
+.v-pass{background:rgba(45,212,160,.07);border-color:rgba(45,212,160,.35);color:var(--gr);}
+.vc-filters{margin-left:auto;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-weight:400;}
+.vfb.on,.vc-tab.on{border-color:var(--ac);color:var(--ac);background:rgba(79,142,247,.1);}
+.vc-t td{max-width:none;white-space:normal;vertical-align:top;word-break:break-word;}
+.vc-t tr.det td{background:var(--s2);font-family:var(--fn);font-size:11.5px;color:var(--t2);line-height:1.6;}
+.vc-t tr.det b{color:var(--tx);}
+.vc-sev{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-family:var(--mo);}
+.vc-ERROR{background:rgba(247,79,79,.12);color:var(--re);} .vc-WARN{background:rgba(247,201,79,.12);color:var(--ye);} .vc-INFO{background:rgba(79,142,247,.12);color:var(--ac);}
+.vc-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.vc-card{border:1px solid var(--b2);border-radius:var(--r);padding:12px 14px;margin-bottom:12px;background:var(--s2);}
+.vc-card.off{opacity:.55;}
+.vc-card-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.vc-card-h select{width:auto;}
+.vc-exp{border-left:2px solid var(--b3);padding:6px 0 6px 12px;margin:10px 0;}
+.vc-lab{font-size:11px;font-family:var(--mo);color:var(--t2);margin:6px 0 4px;cursor:pointer;}
+.vc-sec{font-size:13px;font-weight:600;margin:18px 0 10px;padding-top:12px;border-top:1px solid var(--b1);}
+.vc-sec:first-child{border-top:none;margin-top:0;padding-top:0;}
+.vc-et{width:100%;border-collapse:collapse;}
+.vc-et th{font-size:9.5px;font-family:var(--mo);color:var(--t3);text-align:left;padding:4px;font-weight:500;}
+.vc-et td{padding:3px 4px;vertical-align:top;}
+.vc-et input,.vc-et select,.vc-et textarea{padding:5px 8px;font-size:11.5px;}
+.vc-toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+.vc-toolbar select{width:auto;}
+.vc-danger:hover{border-color:var(--re)!important;color:var(--re)!important;}
 </style>
 </head>
 <body>
@@ -318,6 +351,14 @@ tr:hover td{background:rgba(255,255,255,.02);}
     </button>
     <button class="nav-item" id="nav-k5" onclick="goPanel('sk',5)">
       <span class="step-badge" id="sb-k5">5</span> Process &amp; Export
+    </button>
+
+    <div class="nav-sec-label" style="margin-top:14px;">Quality</div>
+    <button class="nav-item" id="nav-q1" onclick="goPanel('qc',1)">
+      <span class="step-badge" id="sb-q1">✓</span> Grid Checker
+    </button>
+    <button class="nav-item" id="nav-q2" onclick="goPanel('qc',2)">
+      <span class="step-badge" id="sb-q2">≡</span> Checker Profiles
     </button>
   </nav>
 
@@ -532,6 +573,7 @@ tr:hover td{background:rgba(255,255,255,.02);}
       <div class="action-row">
         <button class="btn btn-gr" onclick="runMerge('std')" id="btn-merge-std">✦ Apply Detriff Merger</button>
         <button class="btn btn-sec" onclick="dlDirect('std')" id="btn-dl-direct">↓ Download Without Merge</button>
+        <button class="btn btn-sec" onclick="goPanel('qc',1)">✓ After manual changes: check the final file</button>
       </div>
     </div>
     <div id="std-merged-section" style="display:none" class="fade">
@@ -697,14 +739,138 @@ tr:hover td{background:rgba(255,255,255,.02);}
       <div class="card-title">Download</div>
       <div class="action-row">
         <button class="btn btn-gr btn-lg" onclick="dlDirect('sk')">↓ Download CSV</button>
+        <button class="btn btn-sec btn-lg" onclick="goPanel('qc',1)">✓ After manual changes: check the final file</button>
       </div>
     </div>
   </div>
   <div class="action-row" style="margin-top:10px"><button class="btn btn-sec" onclick="goPanel('sk',4)">← Back</button></div>
 </div>
 
+
+<!-- ══════════ QUALITY PANELS ══════════ -->
+<!-- Q1: Grid Checker -->
+<div class="portal-panel" id="p-qc-1">
+  <div class="ph"><h2>Grid Checker</h2>
+    <p>Run this after downloading the output and finishing the manual changes. The checker traces every output row back to its source cell and applies the profile’s checks and remark rules.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Final grid file <span class="badge badge-blue">Required</span></div>
+    <div class="upload-zone" id="uz-vc" ondragover="doDrag(event,'vc')" ondragleave="doDragLeave('vc')"
+         ondrop="event.preventDefault();doDragLeave('vc');if(event.dataTransfer.files[0])vcSetFile('csv',event.dataTransfer.files[0])">
+      <input type="file" id="fi-vc" accept=".csv" onchange="if(this.files[0])vcSetFile('csv',this.files[0])"/>
+      <div class="upload-icon">🧾</div>
+      <h3>Drop the final CSV (after manual changes)</h3>
+      <p>.csv — the file you will upload to the system</p>
+      <div id="fd-vc"></div>
+    </div>
+    <label class="vc-opt" id="vc-last-wrap" style="margin-top:10px">
+      <input type="checkbox" id="vc-use-last" onchange="vcRefresh()"/>
+      <span>Check the last portal output instead <span class="hint" style="display:inline">(before manual steps — lists what still needs doing)</span></span>
+    </label>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Check against</div>
+    <div class="fr">
+      <div class="fg"><label>Checker profile (use case)</label>
+        <div style="display:flex;gap:8px"><select id="vc-profile"></select>
+          <button class="btn btn-sec btn-sm" onclick="goPanel('qc',2)">Edit</button></div>
+        <div class="hint">Rules for this use case — kept separate from the portal config.</div>
+      </div>
+      <div class="fg"><label>Source workbook</label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span id="vc-src-name" class="file-chip" style="margin:0">—</span>
+          <label class="btn btn-sec btn-sm" style="margin:0;cursor:pointer">Use another…
+            <input type="file" accept=".xlsx,.xlsb,.xls" style="display:none" onchange="vcUploadSource(this)"/></label>
+        </div>
+        <div class="hint">From Step 1 when uploaded. Needed to trace rows to source cells and to apply remark rules.</div>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>RTO file <span style="color:var(--t3)">(optional)</span></label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span id="vc-rto-name" class="file-chip" style="margin:0">—</span>
+          <label class="btn btn-sec btn-sm" style="margin:0;cursor:pointer">Choose…
+            <input type="file" accept=".xlsx,.xls" style="display:none" onchange="vcSetFile('rto',this.files[0])"/></label>
+        </div>
+        <div class="hint">Lets the checker tell clusters apart via their RTO codes.</div>
+      </div>
+      <div class="fg"><label>Previous grid <span style="color:var(--t3)">(optional)</span></label>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span id="vc-ref-name" class="file-chip" style="margin:0">—</span>
+          <label class="btn btn-sec btn-sm" style="margin:0;cursor:pointer">Choose…
+            <input type="file" accept=".csv" style="display:none" onchange="vcSetFile('reference',this.files[0])"/></label>
+        </div>
+        <div class="hint">Last month’s final CSV — shows new, removed and changed rows.</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:22px;flex-wrap:wrap">
+      <label class="vc-opt"><input type="checkbox" id="vc-do-source" checked/> Trace rows to the source sheet</label>
+      <label class="vc-opt"><input type="checkbox" id="vc-do-config" checked/> Also check the current portal config</label>
+    </div>
+  </div>
+
+  <button class="btn btn-primary btn-lg" id="btn-vc" onclick="vcRun()">✔ Run Grid Checker</button>
+  <div id="vc-status" style="margin-top:14px"></div>
+
+  <div id="vc-result" style="display:none" class="fade">
+    <div id="vc-verdict"></div>
+    <div class="stats-row" id="vc-stats"></div>
+    <div class="card">
+      <div class="card-title">Findings <span class="badge badge-blue" id="vc-count"></span>
+        <div class="vc-filters">
+          <button class="btn btn-sec btn-xs vfb on" data-sev="" onclick="vcFilter(this)">All</button>
+          <button class="btn btn-sec btn-xs vfb" data-sev="ERROR" onclick="vcFilter(this)">Errors</button>
+          <button class="btn btn-sec btn-xs vfb" data-sev="WARN" onclick="vcFilter(this)">Warnings</button>
+          <button class="btn btn-sec btn-xs vfb" data-sev="INFO" onclick="vcFilter(this)">Info</button>
+          <select id="vc-layer" onchange="vcRenderFindings()" style="width:auto;padding:3px 8px;font-size:11px">
+            <option value="">All layers</option><option value="OUTPUT">Output file</option><option value="RULES">Remark rules</option>
+            <option value="SOURCE">Source</option><option value="CONFIG">Portal config</option><option value="CHECKER">Checker</option></select>
+          <input type="text" id="vc-q" placeholder="Search…" oninput="vcRenderFindings()" style="width:170px;padding:3px 8px;font-size:11px"/>
+        </div>
+      </div>
+      <div class="tw"><table class="vc-t"><thead><tr><th>Severity</th><th>Check</th><th>What</th><th>Column</th><th>Expected</th><th>Actual</th><th style="text-align:right">Rows</th></tr></thead>
+        <tbody id="vc-tbody"></tbody></table></div>
+      <div class="hint" style="margin-top:6px">Click a finding for example rows (source cell → CSV line), the rule and the fix.</div>
+    </div>
+    <div class="card" id="vc-mm-card" style="display:none">
+      <div class="card-title">Rate mismatch samples <span class="badge badge-gr">source cell → CSV line</span></div>
+      <div class="tw" style="max-height:300px;overflow:auto" id="vc-mm"></div>
+    </div>
+    <div class="action-row">
+      <button class="btn btn-gr btn-lg" onclick="vcDownload()">⬇ Download Excel Report</button>
+      <button class="btn btn-sec" onclick="goPanel('qc',2)">Adjust profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- Q2: Checker Profiles -->
+<div class="portal-panel" id="p-qc-2">
+  <div class="ph"><h2>Checker Profiles</h2>
+    <p>One profile per use case: which checks run, how output rows trace back to the source, and what each remark means. Change it when the business rule changes, not when the portal config changes.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">Profile <span class="badge badge-ye" id="vp-dirty" style="display:none">unsaved changes</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <select id="vp-file" style="max-width:280px" onchange="vpLoad(this.value)"></select>
+      <button class="btn btn-primary btn-sm" onclick="vpSave()">💾 Save</button>
+      <button class="btn btn-sec btn-sm" onclick="vpSaveAs()">Save as…</button>
+      <button class="btn btn-sec btn-sm" onclick="vpValidate()">Validate</button>
+      <button class="btn btn-sec btn-sm" onclick="vpExport()">⬇ Export</button>
+      <label class="btn btn-sec btn-sm" style="margin:0;cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="vpImport(this)"/></label>
+      <button class="btn btn-sec btn-sm" onclick="vpNewFromPortal()" title="Build a starter profile from the preset / mapping currently loaded in Steps 2–3">＋ New from portal setup</button>
+      <button class="btn btn-sec btn-sm vc-danger" onclick="vpDelete()" style="margin-left:auto">Delete</button>
+    </div>
+    <div id="vp-status"></div>
+  </div>
+  <div class="vc-tabs" id="vp-tabs"></div>
+  <div class="card" id="vp-body"></div>
+  <datalist id="vp-cols"></datalist>
+</div>
+
 </div><!-- /main-area -->
 </div><!-- /app -->
+
 
 <!-- ── AI Assistant widget ──────────────────────────────────────────────── -->
 <button class="ai-fab" id="ai-fab" onclick="toggleAI()" title="AI Assistant">
@@ -954,7 +1120,7 @@ function setMode(m) {
 }
 
 function goPanel(mode, n) {
-  S.mode = mode;
+  if (mode !== 'qc') S.mode = mode;
   document.getElementById('mode-std').classList.toggle('active', mode==='std');
   document.getElementById('mode-sk').classList.toggle('active', mode==='sk');
   document.querySelectorAll('.portal-panel').forEach(p => p.classList.remove('active'));
@@ -962,12 +1128,15 @@ function goPanel(mode, n) {
   updateNav(mode, n);
   if (mode==='std' && n===5) buildStdSummary();
   if (mode==='std' && n===3) rebuildMapper();
+  if (mode==='qc' && n===1) initVChecker();
+  if (mode==='qc' && n===2) initProfiles();
   window.scrollTo(0,0);
 }
 
 function updateNav(mode, active) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active','sk-active'));
   for (let i=1;i<=5;i++) {
-    const el = document.getElementById(`nav-${mode==='std'?'s':'k'}${i}`);
+    const el = document.getElementById(`nav-${({std:'s',sk:'k',qc:'q'})[mode]}${i}`);
     if(!el) continue;
     el.classList.remove('active','sk-active');
     if (i===active) el.classList.add(mode==='sk' ? 'sk-active' : 'active');
@@ -1047,7 +1216,7 @@ async function loadPresets() {
   window._presets = presets;
 }
 
-function applyPreset(name) {
+function applyPresetBase(name) {
   const c = window._presets[name]; if(!c) return;
   document.querySelectorAll('.preset-card').forEach(x=>x.classList.remove('sel'));
   const el = document.getElementById(`pc-${name.replace(/\W/g,'_')}`);
@@ -1320,7 +1489,7 @@ function toggleRawJson() {
 }
 
 // Patch applyPreset to also sync mapper after preset load
-const _origApplyPreset = applyPreset;
+const _origApplyPreset = applyPresetBase;   // fixed: was 'applyPreset', which is hoisted to this wrapper → infinite recursion
 function applyPreset(name) {
   _origApplyPreset(name);
   // Clear old mapper state and rebuild from loaded JSON
@@ -1820,8 +1989,8 @@ function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'
 function gv(id) { const el = document.getElementById(id); return el ? el.value : ''; }
 function sv(id, val) { const el = document.getElementById(id); if (el) el.value = val; }
 
-function exportConfig() {
-  const cfg = {
+function buildConfigObject() {
+  return {
     _version: 2,
     _exported: new Date().toISOString(),
     mode: S.mode,
@@ -1865,7 +2034,10 @@ function exportConfig() {
       }))
     }
   };
+}
 
+function exportConfig() {
+  const cfg = buildConfigObject();
   const blob = new Blob([JSON.stringify(cfg, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1956,6 +2128,372 @@ function showAlert(msg) { alert(msg); }
 // ─── Init ─────────────────────────────────────────────────────────────────────
 setMode('std');
 goPanel('std',1);
+</script>
+<script>
+
+// ══════════════════════════════════════════════════════════════════════════════
+// VERTICAL GRID CHECKER — Quality › Grid Checker
+// ══════════════════════════════════════════════════════════════════════════════
+const VC = { files:{}, source:null, result:null, sev:'', open:{} };
+const vcEsc = s => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+function vcSetFile(kind, f){
+  if(!f) return; VC.files[kind]=f;
+  if(kind==='csv'){
+    document.getElementById('uz-vc').classList.add('has-file');
+    document.getElementById('fd-vc').innerHTML=`<div class="file-chip">📄 ${vcEsc(f.name)} <span style="color:var(--t3)">(${(f.size/1048576).toFixed(1)} MB)</span></div>`;
+    document.getElementById('vc-use-last').checked=false;
+  }
+  if(kind==='rto') document.getElementById('vc-rto-name').textContent='🗺️ '+f.name;
+  if(kind==='reference') document.getElementById('vc-ref-name').textContent='📄 '+f.name;
+  vcRefresh();
+}
+function vcLastOutput(){ return S.std.mergedResult?.merged_filename || S.std.result?.output_filename || null; }
+function vcRefresh(){ document.getElementById('uz-vc').style.opacity=document.getElementById('vc-use-last').checked?'.45':'1'; }
+
+async function initVChecker(){
+  try{
+    const d=await (await fetch('/api/vchecker/profiles')).json(); const sel=document.getElementById('vc-profile');
+    const cur=sel.value||VP.file||'';
+    sel.innerHTML=(d.profiles||[]).map(p=>`<option value="${vcEsc(p.file)}">${vcEsc(p.name||p.file)}</option>`).join('')||'<option value="">(no profiles)</option>';
+    if(cur&&[...sel.options].some(o=>o.value===cur)) sel.value=cur;
+    else { // guess from the sheet chosen in Step 2
+      const sh=(document.getElementById('cfg-sheet')?.value||'').toLowerCase();
+      const g=[...sel.options].find(o=>sh&&(o.textContent.toLowerCase().includes(sh)||sh.includes(o.textContent.toLowerCase().split(' ')[0])));
+      if(g) sel.value=g.value;
+    }
+  }catch(e){}
+  const src=VC.source||(S.std.filepath?{path:S.std.filepath,name:files.main?.name||S.std.filepath.split(/[\\/]/).pop()}:null);
+  document.getElementById('vc-src-name').textContent=src?'📊 '+src.name:'No workbook — upload in Step 1 or here';
+  const ds=document.getElementById('vc-do-source'); ds.disabled=!src; if(!src) ds.checked=false;
+  if(!VC.files.rto) document.getElementById('vc-rto-name').textContent=(VC.source?.rto||S.std.rtoPath)?'🗺️ from Step 1':'none';
+  if(!VC.files.reference) document.getElementById('vc-ref-name').textContent='none';
+  const hasCfg=!!(document.getElementById('map-json')?.value||'').trim();
+  const dc=document.getElementById('vc-do-config'); dc.disabled=!hasCfg; if(!hasCfg) dc.checked=false;
+  const last=vcLastOutput();
+  document.getElementById('vc-last-wrap').style.display=last?'flex':'none';
+  if(!last) document.getElementById('vc-use-last').checked=false;
+}
+
+async function vcUploadSource(input){
+  const f=input.files[0]; if(!f) return;
+  const el=document.getElementById('vc-src-name'); el.textContent='⏳ Uploading '+f.name+'…';
+  const fd=new FormData(); fd.append('file',f);
+  try{ const d=await (await fetch('/api/upload',{method:'POST',body:fd})).json(); if(d.error) throw new Error(d.error);
+       VC.source={path:d.filepath,name:f.name}; document.getElementById('vc-do-source').checked=true; initVChecker();
+  }catch(e){ el.textContent='Upload failed: '+e.message; }
+}
+
+async function vcRun(){
+  const st=document.getElementById('vc-status'), btn=document.getElementById('btn-vc');
+  const useLast=document.getElementById('vc-use-last').checked;
+  if(!useLast && !VC.files.csv){ st.innerHTML='<div class="sb sb-err">Upload the final CSV first (or tick “check the last portal output”).</div>'; return; }
+  const prof=document.getElementById('vc-profile').value;
+  if(!prof){ st.innerHTML='<div class="sb sb-err">Create a checker profile first (Checker Profiles).</div>'; return; }
+  const fd=new FormData();
+  if(useLast) fd.append('last_output', vcLastOutput()); else fd.append('csv', VC.files.csv);
+  fd.append('profile_name', prof);
+  const src=VC.source||(S.std.filepath?{path:S.std.filepath}:null);
+  if(document.getElementById('vc-do-source').checked && src) fd.append('source_path', src.path);
+  if(VC.files.rto) fd.append('rto', VC.files.rto); else if(S.std.rtoPath) fd.append('rto_path', S.std.rtoPath);
+  if(VC.files.reference) fd.append('reference', VC.files.reference);
+  if(document.getElementById('vc-do-config').checked) fd.append('config_json', JSON.stringify(buildConfigObject()));
+  btn.disabled=true; btn.innerHTML='<div class="sp"></div> Checking…';
+  const t0=Date.now();
+  const tick=setInterval(()=>{ st.innerHTML=`<div class="sb sb-info"><div class="sp"></div><div>Tracing output rows to source cells and applying rules… ${Math.round((Date.now()-t0)/1000)}s <span class="hint" style="display:inline">(large grids such as Banca Motor take 2–3 minutes)</span></div></div>`; },500);
+  try{
+    const r=await fetch('/api/vchecker/run',{method:'POST',body:fd}); const d=await r.json();
+    if(d.error) throw new Error(d.error+(d.errors?'\n• '+d.errors.join('\n• '):''));
+    VC.result=d; VC.open={}; st.innerHTML=''; vcRenderResult();
+    document.getElementById('nav-q1')?.classList.add('done');
+  }catch(e){ st.innerHTML=`<div class="sb sb-err">❌ ${vcEsc(e.message)}</div>`; }
+  finally{ clearInterval(tick); btn.disabled=false; btn.innerHTML='✔ Run Grid Checker'; }
+}
+
+function vcRenderResult(){
+  const d=VC.result;
+  const cls=d.verdict==='FAIL'?'v-fail':(d.verdict==='PASS'?'v-pass':'v-warn');
+  const head=d.verdict==='FAIL'?'Do not upload — fix the errors below':(d.verdict==='PASS'?'Grid is correct':'Grid passes — review the warnings');
+  const used=['output file'].concat(d.used.source?['source trace + remark rules']:[]).concat(d.used.config?['portal config']:[]).concat(d.used.rto?['RTO file']:[]).concat(d.used.reference?['previous grid']:[]);
+  document.getElementById('vc-verdict').innerHTML=`<div class="vc-verdict ${cls}"><span class="v-ic">${d.verdict==='FAIL'?'✖':(d.verdict==='PASS'?'✔':'!')}</span>
+    <div><b>${head}</b><div class="v-sub">${vcEsc(d.meta['Output file'])} · ${vcEsc(d.meta['Rows'])} rows · profile: ${vcEsc(d.meta['Profile'])} · checked: ${used.join(', ')}</div></div></div>`;
+  const nE=ls=>d.findings.filter(f=>f.severity==='ERROR'&&ls.includes(f.layer)).length;
+  document.getElementById('vc-stats').innerHTML=`
+    <div class="stat"><div class="val" style="color:var(--re)">${nE(['OUTPUT','SOURCE'])}</div><div class="lbl">Errors in the file</div></div>
+    <div class="stat"><div class="val" style="color:${nE(['RULES'])?'var(--re)':'var(--t2)'}">${nE(['RULES'])}</div><div class="lbl">Remark rule violations</div></div>
+    <div class="stat"><div class="val" style="color:${nE(['CONFIG'])?'var(--re)':'var(--t2)'}">${d.used.config?nE(['CONFIG']):'–'}</div><div class="lbl">Portal config errors</div></div>
+    <div class="stat"><div class="val" style="color:var(--ye)">${d.warnings}</div><div class="lbl">Warnings</div></div>`;
+  vcRenderFindings();
+  const mm=d.samples||[];
+  document.getElementById('vc-mm-card').style.display=mm.length?'block':'none';
+  if(mm.length) document.getElementById('vc-mm').innerHTML=`<table class="vc-t"><thead><tr><th>Source cell</th><th>CSV line</th><th>Column</th><th>Expected</th><th>Actual</th></tr></thead><tbody>${
+    mm.map(m=>`<tr><td>${vcEsc(m.source_cell)}</td><td>${m.csv_line}</td><td>${vcEsc(m.column)}</td><td style="color:var(--gr)">${vcEsc(m.expected)}</td><td style="color:var(--re)">${vcEsc(m.actual)}</td></tr>`).join('')}</tbody></table>`;
+  document.getElementById('vc-result').style.display='block';
+}
+function vcFilter(b){ document.querySelectorAll('.vfb').forEach(x=>x.classList.toggle('on',x===b)); VC.sev=b.dataset.sev; vcRenderFindings(); }
+function vcRenderFindings(){
+  const d=VC.result; if(!d) return;
+  const layer=document.getElementById('vc-layer').value, q=document.getElementById('vc-q').value.toLowerCase();
+  const so={ERROR:0,WARN:1,INFO:2}, lo={OUTPUT:0,RULES:1,SOURCE:2,CONFIG:3,CHECKER:4};
+  const rows=d.findings.map((f,i)=>({...f,_i:i})).filter(f=>(!VC.sev||f.severity===VC.sev)&&(!layer||f.layer===layer)&&(!q||JSON.stringify(f).toLowerCase().includes(q)))
+    .sort((a,b)=>so[a.severity]-so[b.severity]||(lo[a.layer]??9)-(lo[b.layer]??9)||a.check_id.localeCompare(b.check_id)||b.count-a.count);
+  document.getElementById('vc-count').textContent=`${rows.length} of ${d.findings.length}`;
+  const chip=s=>`<span class="vc-sev vc-${s}">${s}</span>`;
+  document.getElementById('vc-tbody').innerHTML=rows.map(f=>`
+    <tr onclick="VC.open[${f._i}]=!VC.open[${f._i}];vcRenderFindings()" style="cursor:pointer">
+      <td>${chip(f.severity)}</td><td style="color:var(--t3);white-space:nowrap">${f.layer} ${vcEsc(f.check_id)}</td>
+      <td style="font-family:var(--fn);font-size:12px;color:var(--tx)">${vcEsc(f.check)}</td><td>${vcEsc(f.column)}</td>
+      <td style="color:var(--gr)">${vcEsc(f.expected)}</td><td style="color:var(--re)">${vcEsc(f.actual)}</td>
+      <td style="text-align:right;white-space:nowrap">${f.count?f.count.toLocaleString():''}</td></tr>
+    ${VC.open[f._i]?`<tr class="det"><td></td><td colspan="6">
+      ${f.examples?`<div><b>Where:</b> ${vcEsc(f.examples)}</div>`:''}
+      ${f.rule?`<div><b>Applies to:</b> ${vcEsc(f.rule)}</div>`:''}
+      ${f.fix?`<div><b>Fix:</b> ${vcEsc(f.fix)}</div>`:''}
+      ${!f.examples&&!f.fix&&!f.rule?'<div>No further detail.</div>':''}</td></tr>`:''}`).join('')
+    ||'<tr><td colspan="7" style="color:var(--t3)">Nothing matches the filter.</td></tr>';
+}
+function vcDownload(){ if(VC.result) window.location.href='/api/download/'+VC.result.report_filename; }
+
+// ══════════════════════════════════════════════════════════════════════════════
+// Quality › Checker Profiles (editor)
+// ══════════════════════════════════════════════════════════════════════════════
+const VP = { prof:null, file:null, cat:null, tab:'general', cols:[] };
+let VR = [];                                   // references used by inline handlers, rebuilt on every render
+const ref = o => (VR.push(o), VR.length-1);
+const VP_TABS=[['general','General'],['checks','Checks'],['rules','Remark rules'],['matching','Source & matching'],['raw','Raw JSON']];
+const lines = s => String(s||'').split('\n').map(x=>x.trim()).filter(Boolean);
+const LIST_OPS = ['in','not_in','between'];
+
+function vpDirty(on=true){ document.getElementById('vp-dirty').style.display=on?'inline':'none'; }
+function vpMsg(html,cls='sb-ok'){ document.getElementById('vp-status').innerHTML=`<div class="sb ${cls}" style="margin-top:10px"><div>${html}</div></div>`; }
+
+async function initProfiles(selectFile){
+  if(!VP.cat) VP.cat=await (await fetch('/api/vchecker/catalog')).json();
+  const d=await (await fetch('/api/vchecker/profiles')).json(); const sel=document.getElementById('vp-file');
+  sel.innerHTML=(d.profiles||[]).map(p=>`<option value="${vcEsc(p.file)}">${vcEsc(p.name||p.file)} — ${vcEsc(p.file)}</option>`).join('');
+  const f=selectFile||VP.file||document.getElementById('vc-profile')?.value||sel.value;
+  if(f&&[...sel.options].some(o=>o.value===f)) sel.value=f;
+  if(!VP.prof||selectFile) await vpLoad(sel.value,true); else vpRender();
+}
+async function vpLoad(file,force){
+  if(!file) return;
+  if(!force&&VP.prof&&document.getElementById('vp-dirty').style.display!=='none'&&!confirm('Discard unsaved changes?')){ document.getElementById('vp-file').value=VP.file; return; }
+  const d=await (await fetch('/api/vchecker/profiles/'+encodeURIComponent(file))).json();
+  if(d.error){ vpMsg(vcEsc(d.error),'sb-err'); return; }
+  VP.prof=d.profile; VP.file=d.file; vpDirty(false); document.getElementById('vp-status').innerHTML='';
+  await vpLoadCols(); vpRender();
+}
+async function vpLoadCols(){
+  const p=VP.prof, src=VC.source?.path||S.std.filepath; let sc=[];
+  if(src&&p.source?.sheet){
+    try{ const r=await (await fetch('/api/vchecker/source_columns',{method:'POST',headers:{'Content-Type':'application/json'},
+         body:JSON.stringify({filepath:src,sheet:p.source.sheet,header_row:p.source.header_row})})).json(); sc=r.columns||[]; }catch(e){}
+  }
+  VP.cols=[...new Set([...(p.expected_columns||[]),...sc])];
+  document.getElementById('vp-cols').innerHTML=VP.cols.map(c=>`<option value="${vcEsc(c)}">`).join('');
+}
+async function vpSave(asFile){
+  if(!VP.prof) return; const file=asFile||VP.file;
+  const r=await fetch('/api/vchecker/profiles/'+encodeURIComponent(file),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({profile:VP.prof})});
+  const d=await r.json();
+  if(d.error){ vpMsg(`<b>${vcEsc(d.error)}</b>${(d.errors||[]).map(e=>'<br/>• '+vcEsc(e)).join('')}`,'sb-err'); return; }
+  VP.file=d.file; vpDirty(false); await initProfiles(d.file);
+  vpMsg(`✓ Saved ${vcEsc(d.file)}${d.warnings?.length?`<br/><span style="color:var(--ye)">${d.warnings.slice(0,4).map(vcEsc).join(' · ')}</span>`:''}`);
+}
+function vpSaveAs(){ const n=prompt('Save profile as (file name):',(VP.file||'profile.json').replace('.json','_copy.json')); if(n) vpSave(n.endsWith('.json')?n:n+'.json'); }
+async function vpValidate(){
+  const d=await (await fetch('/api/vchecker/validate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({profile:VP.prof})})).json();
+  if(!d.errors.length&&!d.warnings.length) vpMsg('✓ Profile is valid.');
+  else vpMsg(d.errors.map(e=>'✖ '+vcEsc(e)).concat(d.warnings.map(w=>'⚠ '+vcEsc(w))).join('<br/>'),d.errors.length?'sb-err':'sb-warn');
+}
+function vpExport(){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([JSON.stringify(VP.prof,null,1)],{type:'application/json'})); a.download=VP.file||'checker_profile.json'; a.click(); }
+function vpImport(input){
+  const f=input.files[0]; if(!f) return; const rd=new FileReader();
+  rd.onload=e=>{ try{ const p=JSON.parse(e.target.result); if(!p.checks&&!p.expected_columns) throw new Error('Not a checker profile.');
+    VP.prof=p; VP.file=f.name; vpDirty(); vpRender(); vpMsg('Imported — click Save to store it on the server.','sb-info'); }catch(err){ vpMsg(vcEsc(err.message),'sb-err'); } input.value=''; };
+  rd.readAsText(f);
+}
+async function vpDelete(){ if(!VP.file||!confirm(`Delete profile ${VP.file}? (a .bak of the last save stays on the server)`)) return;
+  await fetch('/api/vchecker/profiles/'+encodeURIComponent(VP.file),{method:'DELETE'}); VP.prof=null; VP.file=null; initProfiles(); }
+async function vpNewFromPortal(){
+  let mapping={}; try{ mapping=JSON.parse(document.getElementById('map-json').value||'{}'); }catch(e){ vpMsg('Step 3 mapping JSON is invalid.','sb-err'); return; }
+  const th=(document.getElementById('target-hdrs').value||'').split('\n').map(x=>x.trim()).filter(Boolean);
+  if(!th.length){ vpMsg('Load a preset or fill Step 3 (target headers + mapping) first.','sb-err'); return; }
+  const sheet=document.getElementById('cfg-sheet')?.value||'', hr=+document.getElementById('cfg-hr')?.value||1;
+  const name=prompt('Name of the new use case:', sheet||'New use case'); if(!name) return;
+  const d=await (await fetch('/api/vchecker/from_preset',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({name,preset:{target_headers:th,column_mapping:mapping},filepath:S.std.filepath,sheet,header_row:hr})})).json();
+  if(d.error){ vpMsg(vcEsc(d.error),'sb-err'); return; }
+  VP.prof=d.profile; VP.file=name.replace(/[^A-Za-z0-9]+/g,'_').toLowerCase()+'.json'; vpDirty(); await vpLoadCols(); VP.tab='general'; vpRender();
+  vpMsg(`Starter profile built from Steps 2–3${d.used_source?' and the uploaded sheet':''}. Review it — especially <b>Remark rules</b> and <b>Source &amp; matching</b> — then Save.`,'sb-info');
+}
+
+// ── shared widgets ────────────────────────────────────────────────────────────
+function vpSet(r,k,v,kind){ const o=VR[r];
+  if(kind==='num') v=(v===''?'':Number(v)); else if(kind==='lines') v=lines(v); else if(kind==='bool') v=!!v;
+  else if(kind==='pairs') v=lines(v).map(l=>l.split('|').map(x=>x.trim()));
+  if(typeof o.__set==='function') o.__set(k,v); else o[k]=v; vpDirty(); }
+function inp(r,k,v,opt={}){ return `<input type="${opt.type||'text'}" value="${vcEsc(v??'')}" ${opt.list?'list="vp-cols"':''} placeholder="${vcEsc(opt.ph||'')}" style="${opt.style||''}"
+  oninput="vpSet(${r},'${k}',this.value${opt.type==='number'?",'num'":''})"/>`; }
+function sel(r,k,v,options,re){ return `<select onchange="vpSet(${r},'${k}',this.value)${re?';vpRender()':''}">${options.map(o=>{const [val,lab]=Array.isArray(o)?o:[o,o];
+  return `<option value="${vcEsc(val)}" ${String(val)===String(v??'')?'selected':''}>${vcEsc(lab)}</option>`;}).join('')}</select>`; }
+function chk(r,k,v,re){ return `<input type="checkbox" ${v?'checked':''} onchange="vpSet(${r},'${k}',this.checked,'bool')${re?';vpRender()':''}"/>`; }
+function area(r,k,v,kind='lines',rows=4){ const txt=kind==='pairs'?(v||[]).map(p=>p.join(' | ')).join('\n'):(Array.isArray(v)?v.join('\n'):(v||''));
+  return `<textarea rows="${rows}" onchange="vpSet(${r},'${k}',this.value,'${kind}')">${vcEsc(txt)}</textarea>`; }
+
+function condTable(arr, title, help){            // conditions editor; arr is mutated in place
+  const ops=Object.entries(VP.cat.ops), nov=VP.cat.no_value_ops;
+  const ra=ref(arr);
+  const rows=arr.map((c,i)=>{ const rc=ref(c);
+    const val=LIST_OPS.includes(c.op)?(Array.isArray(c.value)?c.value.join(' | '):(c.value??'')):(Array.isArray(c.value)?c.value.join(' | '):(c.value??''));
+    return `<tr><td>${inp(rc,'col',c.col,{list:1,ph:'column'})}</td>
+      <td><select onchange="VR[${rc}].op=this.value;vpDirty();vpRender()">${ops.map(([o,l])=>`<option value="${o}" ${o===c.op?'selected':''}>${vcEsc(l)}</option>`).join('')}</select></td>
+      <td>${nov.includes(c.op)?'<span class="hint">—</span>':`<input type="text" value="${vcEsc(val)}" placeholder="${LIST_OPS.includes(c.op)?'a | b | c':'value, {1}, ={1}+0.001, @src:Col, @hdr:name'}"
+        oninput="VR[${rc}].value=${LIST_OPS.includes(c.op)?"this.value.split('|').map(x=>x.trim()).filter(x=>x!=='')":'this.value'};vpDirty()"/>`}</td>
+      <td><button class="btn btn-sec btn-xs" onclick="VR[${ra}].splice(${i},1);vpDirty();vpRender()">✕</button></td></tr>`; }).join('');
+  return `<div class="vc-cond">${title?`<div class="vc-lab">${title}${help?` <span class="hint" style="display:inline">${help}</span>`:''}</div>`:''}
+    ${arr.length?`<table class="vc-et"><thead><tr><th>Column</th><th style="width:190px">Test</th><th>Value</th><th style="width:34px"></th></tr></thead><tbody>${rows}</tbody></table>`:'<div class="hint">No condition — applies to every row.</div>'}
+    <button class="btn btn-sec btn-xs" style="margin-top:6px" onclick="VR[${ra}].push({col:'',op:'eq',value:''});vpDirty();vpRender()">+ condition</button></div>`;
+}
+function kvTable(obj, fields, onChange, addTpl){  // edit an object as rows; fields = [{k,label,type,options}]
+  const rows=Object.entries(obj||{}).filter(([k])=>!String(k).startsWith('_')).map(([k,v])=>({__k:k,...(typeof v==='object'&&!Array.isArray(v)?v:{__v:v})}));
+  const write=()=>{ const o={}; Object.entries(obj||{}).filter(([k])=>String(k).startsWith('_')).forEach(([k,v])=>o[k]=v);
+    rows.forEach(r=>{ if(!String(r.__k).trim()) return; const {__k,__v,...rest}=r; o[__k.trim()]=('__v' in r)?__v:rest; }); onChange(o); };
+  const rr=rows.map(r=>{ const x=ref(r); r.__set=(k,v)=>{ r[k]=v; write(); }; return x; });
+  const ra=ref({rows, write});
+  return `<table class="vc-et"><thead><tr>${fields.map(f=>`<th>${f.label}</th>`).join('')}<th style="width:34px"></th></tr></thead><tbody>
+    ${rows.map((r,i)=>`<tr>${fields.map(f=>`<td>${f.type==='select'?sel(rr[i],f.k,r[f.k],f.options):f.type==='number'?inp(rr[i],f.k,r[f.k],{type:'number'}):inp(rr[i],f.k,r[f.k],{list:f.list})}</td>`).join('')}
+      <td><button class="btn btn-sec btn-xs" onclick="VR[${ra}].rows.splice(${i},1);VR[${ra}].write();vpDirty();vpRender()">✕</button></td></tr>`).join('')}
+  </tbody></table><button class="btn btn-sec btn-xs" style="margin-top:6px" onclick='VR[${ra}].rows.push(${JSON.stringify(addTpl)});VR[${ra}].write();vpDirty();vpRender()'>+ row</button>`;
+}
+
+// ── tabs ──────────────────────────────────────────────────────────────────────
+function vpRender(){
+  VR=[]; const p=VP.prof, body=document.getElementById('vp-body');
+  document.getElementById('vp-tabs').innerHTML=VP_TABS.map(([k,l])=>`<button class="btn btn-sec btn-sm vc-tab ${k===VP.tab?'on':''}" onclick="VP.tab='${k}';vpRender()">${l}${
+    k==='checks'?` <span class="hint" style="display:inline">${(p?.checks||[]).length}</span>`:k==='rules'?` <span class="hint" style="display:inline">${(p?.source_rules||[]).length}</span>`:''}</button>`).join('');
+  if(!p){ body.innerHTML='<div class="hint">No profile loaded.</div>'; return; }
+  body.innerHTML=({general:vpGeneral,checks:vpChecks,rules:vpRules,matching:vpMatching,raw:vpRaw}[VP.tab])(p);
+}
+function vpGeneral(p){ const r=ref(p);
+  return `<div class="fr"><div class="fg"><label>Use case name</label>${inp(r,'name',p.name)}</div><div class="fg"><label>Profile version</label>${inp(r,'version',p.version,{type:'number'})}</div></div>
+    ${p._about?`<div class="sb sb-info"><div>${vcEsc(p._about)}</div></div>`:''}
+    <div class="fg"><label>Expected output columns, in order <span class="hint" style="display:inline">(${(p.expected_columns||[]).length})</span></label>${area(r,'expected_columns',p.expected_columns,'lines',12)}
+      <button class="btn btn-sec btn-xs" style="margin-top:6px" onclick="VP.prof.expected_columns=(document.getElementById('target-hdrs').value||'').split('\\n').map(x=>x.trim()).filter(Boolean);vpDirty();vpRender()">Take from Step 3 target headers</button></div>`;
+}
+function paramField(chk, prm){ const P=chk.params=chk.params||{}; if(!(prm.key in P)) P[prm.key]=JSON.parse(JSON.stringify(prm.default??''));
+  const r=ref(P), v=P[prm.key];
+  let c;
+  switch(prm.kind){
+    case 'columns': case 'list': c=area(r,prm.key,v,'lines',3); break;
+    case 'pairs': c=area(r,prm.key,v,'pairs',3); break;
+    case 'bool': c=chk_(r,prm.key,v); break;
+    case 'number': c=inp(r,prm.key,v,{type:'number'}); break;
+    case 'select': c=sel(r,prm.key,v,prm.options||[]); break;
+    case 'conditions': return `<div class="fg" style="grid-column:1/-1">${condTable(P[prm.key]=P[prm.key]||[],prm.label)}</div>`;
+    case 'column': c=inp(r,prm.key,v,{list:1}); break;
+    default: c=inp(r,prm.key,v);
+  }
+  return `<div class="fg"><label>${vcEsc(prm.label)}</label>${c}${prm.help?`<div class="hint">${vcEsc(prm.help)}</div>`:''}</div>`;
+}
+function chk_(r,k,v){ return `<div><input type="checkbox" ${v?'checked':''} onchange="vpSet(${r},'${k}',this.checked,'bool')"/></div>`; }
+function vpChecks(p){
+  const T=VP.cat.check_types, arr=p.checks=p.checks||[], ra=ref(arr);
+  const types=Object.entries(T).map(([k,v])=>[k,v.title]);
+  const cards=arr.map((c,i)=>{ const r=ref(c), t=T[c.type]||{params:[],targets:['output']};
+    return `<div class="vc-card ${c.enabled===false?'off':''}">
+      <div class="vc-card-h">${chk(r,'enabled',c.enabled!==false,1)}
+        <input type="text" value="${vcEsc(c.id)}" style="width:70px" oninput="VR[${r}].id=this.value;vpDirty()"/>
+        <input type="text" value="${vcEsc(c.title||'')}" style="flex:1;min-width:200px" placeholder="title" oninput="VR[${r}].title=this.value;vpDirty()"/>
+        <select onchange="VR[${r}].type=this.value;VR[${r}].params={};VR[${r}].target=(VP.cat.check_types[this.value].targets||['output'])[0];vpDirty();vpRender()">${types.map(([k,l])=>`<option value="${k}" ${k===c.type?'selected':''}>${vcEsc(l)}</option>`).join('')}</select>
+        ${sel(r,'target',c.target||'output',t.targets.map(x=>[x,x==='output'?'on output':'on source']))}
+        ${sel(r,'severity',c.severity||'ERROR',VP.cat.severities)}
+        <button class="btn btn-sec btn-xs" title="Move up" onclick="vpMove(${ra},${i},-1)">↑</button><button class="btn btn-sec btn-xs" title="Move down" onclick="vpMove(${ra},${i},1)">↓</button>
+        <button class="btn btn-sec btn-xs" title="Duplicate" onclick="VR[${ra}].splice(${i}+1,0,Object.assign(JSON.parse(JSON.stringify(VR[${ra}][${i}])),{id:VR[${ra}][${i}].id+'_copy'}));vpDirty();vpRender()">⧉</button>
+        <button class="btn btn-sec btn-xs vc-danger" title="Delete" onclick="VR[${ra}].splice(${i},1);vpDirty();vpRender()">✕</button></div>
+      <div class="hint" style="margin:4px 0 8px">${vcEsc(t.desc||'')}</div>
+      <div class="fr">${(t.params||[]).map(prm=>paramField(c,prm)).join('')}</div>
+      <details ${c.where?.length?'open':''}><summary class="vc-lab">Only for rows where… ${c.where?.length?`(${c.where.length})`:''}</summary>
+        ${condTable(c.where=c.where||[],'')}<div class="fg" style="max-width:180px;margin-top:6px"><label>Combine</label>${sel(r,'match',c.match||'all',[['all','all must hold'],['any','any may hold']])}</div></details>
+      <div class="fg" style="margin-top:8px"><label>Fix hint shown with the finding</label>${inp(r,'fix',c.fix)}</div></div>`; }).join('');
+  return `<div class="vc-toolbar"><select id="vp-newtype">${types.map(([k,l])=>`<option value="${k}">${vcEsc(l)}</option>`).join('')}</select>
+    <button class="btn btn-primary btn-sm" onclick="vpAddCheck()">+ Add check</button>
+    <span class="hint">Columns accept wildcards: <code>*</code>, <code>* Ll*</code>, <code>!Unique Id</code>. Values accept <code>{1}</code>, <code>={1}+0.001</code>, <code>@col:X</code>, <code>@hdr:agent_code</code>.</span></div>${cards||'<div class="hint">No checks.</div>'}`;
+}
+function vpMove(ra,i,d){ const a=VR[ra], j=i+d; if(j<0||j>=a.length) return; [a[i],a[j]]=[a[j],a[i]]; vpDirty(); vpRender(); }
+function vpAddCheck(){ const t=document.getElementById('vp-newtype').value, T=VP.cat.check_types[t]; const n=(VP.prof.checks||[]).length+1;
+  const params={}; (T.params||[]).forEach(p=>params[p.key]=JSON.parse(JSON.stringify(p.default??'')));
+  VP.prof.checks.push({id:'C'+String(n).padStart(2,'0'),title:T.title,type:t,target:T.targets[0],severity:'ERROR',enabled:true,params,where:[],fix:''}); vpDirty(); vpRender(); }
+function vpRules(p){
+  const arr=p.source_rules=p.source_rules||[], ra=ref(arr);
+  const cards=arr.map((x,i)=>{ const r=ref(x); x.effects=x.effects||{}; x.expect=x.expect||[]; const re=ref(x.effects), rx=ref(x.expect);
+    const groups=x.expect.map((g,gi)=>{ g.band=g.band||{}; const rb=ref(g.band);
+      return `<div class="vc-exp"><div class="vc-lab">Expectation ${gi+1} <button class="btn btn-sec btn-xs" onclick="VR[${rx}].splice(${gi},1);vpDirty();vpRender()">✕</button></div>
+        <div class="fr4"><div class="fg"><label>Band LL ≥</label>${inp(rb,'ll_gte',g.band.ll_gte,{ph:'={2}+0.001'})}</div><div class="fg"><label>Band LL &lt;</label>${inp(rb,'ll_lt',g.band.ll_lt)}</div>
+          <div class="fg"><label>Band UL ≤</label>${inp(rb,'ul_lte',g.band.ul_lte,{ph:'={2}+0.001'})}</div><div class="fg"><label>Band UL &gt;</label>${inp(rb,'ul_gt',g.band.ul_gt)}</div></div>
+        ${condTable(g.conds=g.conds||[],'Output rows must satisfy')}</div>`; }).join('');
+    return `<div class="vc-card ${x.enabled===false?'off':''}">
+      <div class="vc-card-h">${chk(r,'enabled',x.enabled!==false,1)}
+        <input type="text" value="${vcEsc(x.id)}" style="width:70px" oninput="VR[${r}].id=this.value;vpDirty()"/>
+        <input type="text" value="${vcEsc(x.title||'')}" style="flex:1;min-width:220px" placeholder="what the remark means" oninput="VR[${r}].title=this.value;vpDirty()"/>
+        ${sel(r,'severity',x.severity||'ERROR',VP.cat.severities)}
+        <button class="btn btn-sec btn-xs" onclick="vpMove(${ra},${i},-1)">↑</button><button class="btn btn-sec btn-xs" onclick="vpMove(${ra},${i},1)">↓</button>
+        <button class="btn btn-sec btn-xs vc-danger" onclick="VR[${ra}].splice(${i},1);vpDirty();vpRender()">✕</button></div>
+      ${condTable(x.when=x.when||[],'WHEN the source row…','regex groups ( ) become {1}, {2}…')}
+      <div class="fr" style="margin-top:8px"><div class="fg"><label>Combine WHEN</label>${sel(r,'match',x.match||'all',[['all','all must hold'],['any','any may hold']])}</div>
+        <div class="fg"><label>Effect: cap discount band at</label>${inp(re,'cap_band_ul',x.effects.cap_band_ul,{ph:'={1}+0.001 — bands above are not expected'})}</div></div>
+      <label class="vc-opt" style="margin-bottom:8px">${chk(re,'no_output',x.effects.no_output)} These source rows must produce <b>no</b> output rows</label>
+      ${groups}<button class="btn btn-sec btn-xs" onclick="VR[${rx}].push({band:{},conds:[{col:'',op:'eq',value:''}]});vpDirty();vpRender()">+ expectation</button>
+      <div class="fg" style="margin-top:8px"><label>Fix hint</label>${inp(r,'fix',x.fix)}</div></div>`; }).join('');
+  return `<div class="sb sb-info"><div>A remark rule says: <b>WHEN</b> a source row matches (e.g. <code>Special Remarks</code> matches regex <code>upto disc (\\d+)%</code>), <b>THEN</b> the output rows traced back to it must satisfy the expectations (e.g. <code>Detriff Discount Ul*</code> ≤ <code>={1}+0.001</code>). Expectations can be limited to a part of the discount range.</div></div>
+    <div class="vc-toolbar"><button class="btn btn-primary btn-sm" onclick="VP.prof.source_rules.push({id:'RM'+String(VP.prof.source_rules.length+1).padStart(2,'0'),title:'',enabled:true,severity:'ERROR',when:[{col:'Special Remarks',op:'contains',value:''}],match:'all',effects:{},expect:[{band:{},conds:[{col:'',op:'eq',value:''}]}],fix:''});vpDirty();vpRender()">+ Add remark rule</button></div>
+    ${cards||'<div class="hint">No remark rules.</div>'}`;
+}
+function vpMatching(p){
+  const s=p.source=p.source||{}, rc=p.reconcile=p.reconcile||{}; rc.rate=rc.rate||{}; rc.output_band=rc.output_band||{};
+  const rs=ref(s), rr=ref(rc), rt=ref(rc.rate), rb=ref(rc.output_band);
+  const pol=VP.cat.policies.map(x=>[x,x==='expect'?'expect a row':x==='optional'?'row optional':'must NOT appear']);
+  const sr=rc.rate.scale_rules=rc.rate.scale_rules||[], rsr=ref(sr);
+  const keyFields=(arr,isCompare)=>{ const ra=ref(arr); return `<table class="vc-et"><thead><tr><th>Output column</th><th>Source column</th><th style="width:90px">Via</th>${isCompare?'<th style="width:80px">Scale</th>':'<th style="width:70px">Fallback</th>'}<th>Accepted translations <span class="hint" style="display:inline">source = out1 | out2</span></th><th style="width:34px"></th></tr></thead><tbody>
+    ${arr.map((k,i)=>{ const r=ref(k); const acc=Object.entries(k.accept||{}).map(([a,b])=>a+' = '+(Array.isArray(b)?b.join(' | '):b)).join('\n');
+      return `<tr><td>${inp(r,'output',k.output,{list:1})}</td><td>${inp(r,'source',k.source,{list:1})}</td>
+        <td>${sel(r,'via',k.via||'',[['','direct'],['rto','RTO file']])}</td>
+        <td>${isCompare?inp(r,'scale',k.scale,{type:'number'}):`<input type="checkbox" ${k.fallback?'checked':''} onchange="vpSet(${r},'fallback',this.checked,'bool')"/>`}</td>
+        <td><textarea rows="2" onchange="VR[${r}].accept=Object.fromEntries(this.value.split('\\n').filter(l=>l.includes('=')).map(l=>{const i=l.indexOf('=');return [l.slice(0,i).trim(),l.slice(i+1).split('|').map(x=>x.trim()).filter(Boolean)]}));vpDirty()">${vcEsc(acc)}</textarea></td>
+        <td><button class="btn btn-sec btn-xs" onclick="VR[${ra}].splice(${i},1);vpDirty();vpRender()">✕</button></td></tr>`; }).join('')}
+    </tbody></table><button class="btn btn-sec btn-xs" style="margin-top:6px" onclick="VR[${ra}].push({output:'',source:'',accept:{},blank_as:'ANY'});vpDirty();vpRender()">+ row</button>`; };
+  return `<div class="vc-sec">Source sheet</div>
+    <div class="fr4"><div class="fg"><label>Sheet</label>${inp(rs,'sheet',s.sheet)}</div><div class="fg"><label>Header row</label>${inp(rs,'header_row',s.header_row,{type:'number'})}</div>
+      <div class="fg"><label>First data row</label>${inp(rs,'data_start_row',s.data_start_row,{type:'number'})}</div><div class="fg"><label>First column</label>${inp(rs,'start_col',s.start_col,{type:'number'})}</div></div>
+    <div class="fr"><div class="fg"><label>Header cells <span class="hint" style="display:inline">name = cell, used as @hdr:name</span></label>
+      <textarea rows="2" onchange="VP.prof.source.header_cells=Object.fromEntries(this.value.split('\\n').filter(l=>l.includes('=')).map(l=>l.split('=').map(x=>x.trim())));vpDirty()">${vcEsc(Object.entries(s.header_cells||{}).map(([a,b])=>a+' = '+b).join('\n'))}</textarea></div>
+      <div>${condTable(s.skip_rows_where=s.skip_rows_where||[],'Ignore source rows where (any)')}</div></div>
+    <details><summary class="vc-lab">Discount band table (${Object.keys(s.band_map||{}).length} bands)</summary>
+      ${kvTable(Object.fromEntries(Object.entries(s.band_map||{}).map(([k,v])=>[k,{ll:v[0],ul:v[1]}])),[{k:'__k',label:'Header label'},{k:'ll',label:'LL',type:'number'},{k:'ul',label:'UL',type:'number'}],o=>{VP.prof.source.band_map=Object.fromEntries(Object.entries(o).map(([k,v])=>[k,[Number(v.ll??(v[0]??0)),Number(v.ul??(v[1]??0))]]))},{__k:'',ll:0,ul:0})}</details>
+
+    <div class="vc-sec">Tracing output rows to source cells</div>
+    <label class="vc-opt">${chk(rr,'enabled',rc.enabled,1)} Trace every output row to its source cell (needs the source workbook)</label>
+    <div class="fr4"><div class="fg"><label>Output discount LL</label>${inp(rb,'ll',rc.output_band.ll,{list:1})}</div><div class="fg"><label>Output discount UL</label>${inp(rb,'ul',rc.output_band.ul,{list:1})}</div>
+      <div class="fg"><label>Rate column</label>${inp(rt,'output',rc.rate.output,{list:1})}</div><div class="fg"><label>Rate scale (0.15 → 15)</label>${inp(rt,'scale',rc.rate.scale,{type:'number'})}</div></div>
+    <div class="fr4"><div class="fg"><label>Tolerance</label>${inp(rt,'tolerance',rc.rate.tolerance,{type:'number'})}</div><div class="fg"><label>Explain mismatches by</label>${inp(rt,'explain_by',rc.rate.explain_by,{list:1})}</div>
+      <div class="fg"><label>Negative rates</label>${sel(rr,'negative_policy',rc.negative_policy||'expect',pol)}</div><div class="fg"><label>Other text in rate cells</label>${sel(rr,'unknown_text_policy',rc.unknown_text_policy||'optional',pol)}</div></div>
+    <div class="vc-lab" style="margin-top:6px">Special rate cells (tokens)</div>
+    ${kvTable(rc.tokens,[{k:'__k',label:'Cell text'},{k:'policy',label:'Policy',type:'select',options:pol},{k:'output',label:'Expected output value (blank = any)'}],o=>{VP.prof.reconcile.tokens=o},{__k:'',policy:'skip',output:''})}
+    <div class="vc-lab" style="margin-top:10px">Rate exceptions <span class="hint" style="display:inline">e.g. NOP = ₹ amount: scale 1, written to the column this use case needs</span></div>
+    ${sr.map((x,i)=>{ const r=ref(x); return `<div class="vc-exp">${condTable(x.when=x.when||[],'When source row…')}
+      <div class="fr"><div class="fg"><label>Scale</label>${inp(r,'scale',x.scale,{type:'number'})}</div><div class="fg"><label>Value goes to column</label>${inp(r,'output',x.output,{list:1})}</div></div>
+      ${x.note?`<div class="hint">${vcEsc(x.note)}</div>`:''}<button class="btn btn-sec btn-xs" onclick="VR[${rsr}].splice(${i},1);vpDirty();vpRender()">✕ remove exception</button></div>`; }).join('')}
+    <button class="btn btn-sec btn-xs" onclick="VR[${rsr}].push({when:[{col:'Payment Type',op:'eq',value:'NOP'}],scale:1,output:''});vpDirty();vpRender()">+ rate exception</button>
+    <div class="vc-lab" style="margin-top:12px">Matching keys <span class="hint" style="display:inline">criteria that identify a row — output value must equal the source value (or an accepted translation)</span></div>
+    ${keyFields(rc.keys=rc.keys||[],false)}
+    <div class="vc-lab" style="margin-top:12px">Compared values <span class="hint" style="display:inline">checked on matched rows (outgo, misp, capping, remarks…)</span></div>
+    ${keyFields(rc.compare=rc.compare||[],true)}
+    <div class="vc-lab" style="margin-top:12px">Severity</div>
+    <div class="fr3">${['missing','extra','rate','compare','skip','collision'].map(k=>{rc.severity=rc.severity||{}; return `<div class="fg"><label>${k}</label>${sel(ref(rc.severity),k,rc.severity[k]||'ERROR',VP.cat.severities)}</div>`;}).join('')}</div>`;
+}
+function vpRaw(p){ return `<textarea id="vp-raw" style="min-height:460px;font-family:var(--mo);font-size:11px">${vcEsc(JSON.stringify(p,null,1))}</textarea>
+  <div class="action-row" style="margin-top:8px"><button class="btn btn-sec btn-sm" onclick="try{VP.prof=JSON.parse(document.getElementById('vp-raw').value);vpDirty();VP.tab='general';vpRender();vpMsg('JSON applied — click Save.','sb-info')}catch(e){vpMsg('Invalid JSON: '+vcEsc(e.message),'sb-err')}">Apply JSON</button></div>`; }
+
 </script>
 </body>
 </html>

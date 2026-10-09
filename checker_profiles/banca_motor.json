@@ -1,0 +1,1119 @@
+{
+ "name": "Banca Motor",
+ "version": 1,
+ "_about": "Starter profile built from the portal preset \"Banca Motor\" and the Sept-26 source file. Items marked CONFIRM / SET PER USE CASE need a decision.",
+ "expected_columns": [
+  "Version Id*",
+  "Parent Agent Code*",
+  "Product Code*",
+  "Proposal Id*",
+  "Biz Mix*",
+  "Two Wheeler Category*",
+  "Type Of Business*",
+  "Oem Type*",
+  "Final Region*",
+  "Detriff Discount Ll*",
+  "Detriff Discount Ul*",
+  "Gross Vehicle Weight Ll*",
+  "Gross Vehicle Weight Ul*",
+  "Cubic Capacity Ll*",
+  "Cubic Capacity Ul*",
+  "Primary Agent Code*",
+  "Total Gwp Ll*",
+  "Total Gwp Ul*",
+  "Make*",
+  "Fuel Type*",
+  "Banca Misp*",
+  "Banca Flat Amount*",
+  "Tp Prct*",
+  "Banca Total Comm Rate*",
+  "Banca Outgo*",
+  "Irda Flag*",
+  "Banca Capping*",
+  "Capping Outgo*",
+  "Model*",
+  "Banca Cpa Flag*",
+  "Vehicle Class*",
+  "Bus Type*",
+  "Tp Outgo*",
+  "Unique Id",
+  "Special Remarks",
+  "Remarks",
+  "Rto Code*"
+ ],
+ "source": {
+  "sheet": "Banca Motor",
+  "header_row": 3,
+  "data_start_row": 4,
+  "start_col": 1,
+  "header_cells": {},
+  "band_map": {
+   "0": [
+    0,
+    0.999
+   ],
+   "0-5": [
+    1.0,
+    5.001
+   ],
+   "1-5": [
+    1.001,
+    5.001
+   ],
+   "0.0": [
+    0,
+    1.001
+   ],
+   "6-10": [
+    5.001,
+    10.001
+   ],
+   "11-15": [
+    10.001,
+    15.001
+   ],
+   "16-20": [
+    15.001,
+    20.001
+   ],
+   "21-25": [
+    20.001,
+    25.001
+   ],
+   "26-30": [
+    25.001,
+    30.001
+   ],
+   "31-35": [
+    30.001,
+    35.001
+   ],
+   "36-40": [
+    35.001,
+    40.001
+   ],
+   "41-45": [
+    40.001,
+    45.001
+   ],
+   "46-50": [
+    45.001,
+    50.001
+   ],
+   "51-55": [
+    50.001,
+    55.001
+   ],
+   "56-60": [
+    55.001,
+    60.001
+   ],
+   "61-65": [
+    60.001,
+    65.001
+   ],
+   "66-70": [
+    65.001,
+    70.001
+   ],
+   "71-75": [
+    70.001,
+    75.001
+   ],
+   "76-80": [
+    75.001,
+    80.001
+   ],
+   "81-85": [
+    80.001,
+    85.001
+   ],
+   "86-90": [
+    85.001,
+    90.001
+   ],
+   "91-95": [
+    90.001,
+    95.001
+   ],
+   "96-100": [
+    95.001,
+    100.001
+   ]
+  },
+  "skip_rows_where": []
+ },
+ "reconcile": {
+  "enabled": true,
+  "output_band": {
+   "ll": "Detriff Discount Ll*",
+   "ul": "Detriff Discount Ul*"
+  },
+  "rate": {
+   "output": "Banca Total Comm Rate*",
+   "scale": 100,
+   "tolerance": 0.0001,
+   "explain_by": "Payment Type",
+   "scale_rules": [
+    {
+     "when": [
+      {
+       "col": "Payment Type",
+       "op": "eq",
+       "value": "NOP"
+      }
+     ],
+     "scale": 1,
+     "output": "Banca Total Comm Rate*",
+     "note": "NOP cells are ₹ amounts, not ×100. SET PER USE CASE: the column that receives them (this template has Banca Flat Amount*)."
+    }
+   ],
+   "_note": "Source rates are fractions (0.15); the output holds 15 (confirmed)."
+  },
+  "tokens": {
+   "System Commission": {
+    "policy": "skip",
+    "output": ""
+   },
+   "IRDA": {
+    "policy": "skip",
+    "output": ""
+   }
+  },
+  "unknown_text_policy": "optional",
+  "negative_policy": "skip",
+  "keys": [
+   {
+    "output": "Biz Mix*",
+    "source": "LOB",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Bus Type*",
+    "source": "Bus Type",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Cubic Capacity Ll*",
+    "source": "CC Lower Limit",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Cubic Capacity Ul*",
+    "source": "CC Upper Limit",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Fuel Type*",
+    "source": "Fuel Type",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Make*",
+    "source": "Make",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Model*",
+    "source": "Model",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Parent Agent Code*",
+    "source": "IMD Code (If not based on relationship code)",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Primary Agent Code*",
+    "source": "Relationship Code",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Two Wheeler Category*",
+    "source": "Bike / Scooter",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Type Of Business*",
+    "source": "Old/New",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Vehicle Class*",
+    "source": "Vehicle Class",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Rto Code*",
+    "source": "UW Budget Cluster",
+    "via": "rto",
+    "blank_as": "ANY",
+    "note": "Cluster → RTO codes through the RTO file. Without the file this key is skipped."
+   }
+  ],
+  "compare": [
+   {
+    "output": "Banca Capping*",
+    "source": "Capping % if Any",
+    "accept": {},
+    "blank_as": "ANY",
+    "note": "Fractions in source (0.6). Set scale 100 if the output holds 60."
+   },
+   {
+    "output": "Banca Misp*",
+    "source": "System CommissionExtra",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Banca Outgo*",
+    "source": "Payment Type",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Remarks",
+    "source": "Remarks",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Special Remarks",
+    "source": "Special Remarks",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Tp Outgo*",
+    "source": "TP Comm Basis",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Tp Prct*",
+    "source": "TP Comm%",
+    "accept": {},
+    "blank_as": "ANY"
+   }
+  ],
+  "severity": {
+   "missing": "ERROR",
+   "extra": "ERROR",
+   "rate": "ERROR",
+   "compare": "ERROR",
+   "skip": "ERROR",
+   "collision": "ERROR"
+  }
+ },
+ "checks": [
+  {
+   "id": "O01",
+   "title": "Template columns",
+   "type": "columns",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "order": "strict",
+    "allow_extra": false
+   },
+   "fix": ""
+  },
+  {
+   "id": "O02",
+   "title": "No blank cells",
+   "type": "not_blank",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "*"
+    ]
+   },
+   "fix": "Unmapped columns default to ANY in the portal — blanks come from manual edits."
+  },
+  {
+   "id": "O03",
+   "title": "No placeholder values",
+   "type": "no_placeholder",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "*"
+    ],
+    "values": [
+     "-",
+     "--",
+     "nan",
+     "NaN",
+     "None",
+     "#N/A",
+     "N/A",
+     "#REF!",
+     "#VALUE!",
+     "NULL",
+     "`"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O04",
+   "title": "Range columns are numbers",
+   "type": "numeric",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Detriff Discount Ll*",
+     "Detriff Discount Ul*",
+     "Cubic Capacity*",
+     "Gross Vehicle Weight*",
+     "Total Gwp*"
+    ],
+    "allow_tokens": []
+   },
+   "fix": "Detriff/CC/GVW/GWP limits must be numeric."
+  },
+  {
+   "id": "O05",
+   "title": "Other LL/UL columns are numbers (or ANY)",
+   "type": "numeric",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "* Ll*",
+     "* Ul*",
+     "!Detriff*",
+     "!Cubic Capacity*",
+     "!Gross Vehicle Weight*",
+     "!Total Gwp*"
+    ],
+    "allow_tokens": [
+     "ANY"
+    ]
+   },
+   "fix": "Text like '< 5' or 'Yes' copied into LL/UL — split it into numbers (manual step)."
+  },
+  {
+   "id": "O06",
+   "title": "Lower limit ≤ upper limit",
+   "type": "ll_ul",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "pairs": [],
+    "ll_suffix": " Ll*",
+    "ul_suffix": " Ul*",
+    "allow_equal": true,
+    "skip_tokens": [
+     "ANY"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O07",
+   "title": "Rate is a number",
+   "type": "numeric",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Banca Total Comm Rate*"
+    ],
+    "allow_tokens": []
+   },
+   "fix": "Text in the rate column (e.g. 'System Commission', formulas) — such cells must not reach the output."
+  },
+  {
+   "id": "O23",
+   "title": "No 'System Commission' or 'IRDA' anywhere in the output",
+   "type": "no_placeholder",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "*"
+    ],
+    "values": [
+     "System Commission",
+     "IRDA"
+    ]
+   },
+   "fix": "System Commission and IRDA rows must be removed from the output."
+  },
+  {
+   "id": "O24",
+   "title": "Rate is not negative",
+   "type": "range",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Banca Total Comm Rate*"
+    ],
+    "min": "0",
+    "max": "",
+    "allow_tokens": []
+   },
+   "fix": "Negative commission means IRDA minimum applies — such rows must not be in the output."
+  },
+  {
+   "id": "O08",
+   "title": "Percentage rate within 0–100",
+   "type": "range",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Banca Total Comm Rate*"
+    ],
+    "min": "0",
+    "max": "100",
+    "allow_tokens": []
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "Banca Outgo*",
+     "op": "in",
+     "value": [
+      "GWP",
+      "OD",
+      "TP"
+     ]
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "O09",
+   "title": "Percentage rate below 1 — ×100 probably missing",
+   "type": "range",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Banca Total Comm Rate*"
+    ],
+    "min": "1",
+    "max": "",
+    "allow_tokens": []
+   },
+   "fix": "Add math_op x*100 on the rate column (Transformations).",
+   "where": [
+    {
+     "col": "Banca Outgo*",
+     "op": "in",
+     "value": [
+      "GWP",
+      "OD",
+      "TP"
+     ]
+    },
+    {
+     "col": "Banca Total Comm Rate*",
+     "op": "gt",
+     "value": 0
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "O10",
+   "title": "Rate has float artefacts",
+   "type": "max_decimals",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Banca Total Comm Rate*"
+    ],
+    "decimals": 4
+   },
+   "fix": ""
+  },
+  {
+   "id": "O13",
+   "title": "Same criteria, different rate",
+   "type": "conflict",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "value_columns": [
+     "Banca Total Comm Rate*",
+     "Banca Outgo*"
+    ],
+    "ignore_columns": [
+     "Unique Id",
+     "*Remarks*"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O14",
+   "title": "Exact duplicate rows",
+   "type": "duplicates",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "ignore_columns": [
+     "Unique Id"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O15",
+   "title": "Discount bands",
+   "type": "band_coverage",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "ll": "Detriff Discount Ll*",
+    "ul": "Detriff Discount Ul*",
+    "ignore_columns": [
+     "Unique Id",
+     "*Remarks*"
+    ],
+    "value_columns": [
+     "Banca Total Comm Rate*",
+     "Banca Outgo*"
+    ],
+    "min": "0",
+    "max": "100.001",
+    "gaps": "WARN",
+    "overlaps": "ERROR",
+    "tolerance": 0.0005
+   },
+   "fix": ""
+  },
+  {
+   "id": "O20",
+   "title": "Changes vs previous grid",
+   "type": "reference_diff",
+   "target": "output",
+   "severity": "INFO",
+   "enabled": true,
+   "params": {
+    "key_columns": [],
+    "value_columns": [
+     "Banca Total Comm Rate*",
+     "Banca Outgo*"
+    ],
+    "ignore_columns": [
+     "Unique Id",
+     "Version Id*"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O11",
+   "title": "Outgo value known",
+   "type": "allowed_values",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Banca Outgo*",
+    "values": [
+     "D+C",
+     "GWP",
+     "OD"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "Values seen in the Sept-26 source. Extend the list when a new payment type appears."
+  },
+  {
+   "id": "O12",
+   "title": "NOP rows carry an amount, not a %",
+   "type": "rule",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "if": [
+     {
+      "col": "Banca Outgo*",
+      "op": "eq",
+      "value": "NOP"
+     },
+     {
+      "col": "Banca Total Comm Rate*",
+      "op": "numeric"
+     }
+    ],
+    "then": [
+     {
+      "col": "Banca Total Comm Rate*",
+      "op": "gte",
+      "value": 1
+     }
+    ]
+   },
+   "fix": "NOP = per-policy amount (e.g. 2500). CONFIRM whether it belongs in the flat-amount column."
+  },
+  {
+   "id": "O16",
+   "title": "Unique Id is unique",
+   "type": "unique",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Unique Id"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O17",
+   "title": "Version Id",
+   "type": "single_value",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "column": "Version Id*",
+    "expected": "banca_oem_july_Grid_2"
+   },
+   "fix": ""
+  },
+  {
+   "id": "O19",
+   "title": "RTO codes filled",
+   "type": "rule",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "if": [],
+    "then": [
+     {
+      "col": "Rto Code*",
+      "op": "not_any"
+     }
+    ]
+   },
+   "fix": "Rto Code is ANY — RTO file not uploaded/applied in Step 1."
+  },
+  {
+   "id": "O21",
+   "title": "Type Of Business value known",
+   "type": "allowed_values",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Type Of Business*",
+    "values": [
+     "ANY",
+     "All",
+     "New",
+     "Old",
+     "Renewal, Roll Over"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "S01",
+   "title": "Percentage rate cells: fractions 0–1 or known token",
+   "type": "band_cells",
+   "target": "source",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "allowed_tokens": [
+     "System Commission"
+    ],
+    "min": "0",
+    "max": "1",
+    "cap_ul": ""
+   },
+   "fix": "Free text or values above 1 in a % row need manual handling before conversion.",
+   "where": [
+    {
+     "col": "Payment Type",
+     "op": "in",
+     "value": [
+      "GWP",
+      "OD",
+      "TP",
+      "System Commission"
+     ]
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S02",
+   "title": "Other payment types: rate cells readable",
+   "type": "band_cells",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "allowed_tokens": [
+     "System Commission"
+    ],
+    "min": "0",
+    "max": "",
+    "cap_ul": ""
+   },
+   "fix": "Mixed payment types (OD & D+C, GWP & NOP…) hold formulas — split them by hand and verify.",
+   "where": [
+    {
+     "col": "Payment Type",
+     "op": "not_in",
+     "value": [
+      "GWP",
+      "OD",
+      "TP",
+      "System Commission"
+     ]
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S05",
+   "title": "Unique Sr. No. is unique",
+   "type": "unique",
+   "target": "source",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Unique Sr. No. for the month"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "S06",
+   "title": "LOB and Payment Type filled",
+   "type": "not_blank",
+   "target": "source",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "LOB",
+     "Payment Type"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "S03",
+   "title": "No rate above the disc cap in Special Remarks",
+   "type": "band_cells",
+   "target": "source",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "allowed_tokens": [
+     "System Commission"
+    ],
+    "min": "",
+    "max": "",
+    "cap_ul": "={1}+0.001"
+   },
+   "fix": "The remark caps the discount, but a rate is filled in a band above it — ask the grid owner.",
+   "where": [
+    {
+     "col": "Special Remarks",
+     "op": "regex",
+     "value": "upto disc (\\d+(?:\\.\\d+)?)\\s*%"
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S045",
+   "title": "Source Old/New value known",
+   "type": "allowed_values",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Old/New",
+    "values": [
+     "All",
+     "New",
+     "Old"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "Old/New",
+     "op": "not_empty"
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S046",
+   "title": "Source NCB (Y/N) value known",
+   "type": "allowed_values",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "NCB (Y/N)",
+    "values": [
+     "Yes",
+     "No"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "NCB (Y/N)",
+     "op": "not_empty"
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S047",
+   "title": "Source System CommissionExtra value known",
+   "type": "allowed_values",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "System CommissionExtra",
+    "values": [
+     "Yes",
+     "No"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "System CommissionExtra",
+     "op": "not_empty"
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S048",
+   "title": "Source Fuel Type value known",
+   "type": "allowed_values",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Fuel Type",
+    "values": [
+     "Petrol",
+     "Diesel",
+     "Electric",
+     "CNG",
+     "LPG",
+     "Other than Electric",
+     "Petrol/CNG"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "Fuel Type",
+     "op": "not_empty"
+    }
+   ],
+   "match": "all"
+  }
+ ],
+ "source_rules": [
+  {
+   "id": "RM01",
+   "title": "Disc cap from Special Remarks (\"Grid applicable upto disc N%\")",
+   "enabled": true,
+   "severity": "ERROR",
+   "when": [
+    {
+     "col": "Special Remarks",
+     "op": "regex",
+     "value": "upto disc (\\d+(?:\\.\\d+)?)\\s*%"
+    }
+   ],
+   "match": "all",
+   "effects": {
+    "cap_band_ul": "={1}+0.001"
+   },
+   "expect": [
+    {
+     "band": {},
+     "conds": [
+      {
+       "col": "Detriff Discount Ul*",
+       "op": "lte",
+       "value": "={1}+0.001"
+      }
+     ]
+    }
+   ],
+   "fix": "Bands above the cap must be dropped and the band containing the cap must end at cap+0.001 (e.g. 86-90 → 85.001–89.001)."
+  },
+  {
+   "id": "RM02",
+   "title": "Capping sentence: different cap up to / above a discount",
+   "enabled": true,
+   "severity": "ERROR",
+   "when": [
+    {
+     "col": "Capping % if Any",
+     "op": "regex",
+     "value": "Maximum (\\d+)% on OD if Disc is <=\\s*(\\d+)%.*?Maximum (\\d+)%"
+    }
+   ],
+   "match": "all",
+   "effects": {},
+   "expect": [
+    {
+     "band": {
+      "ul_lte": "={2}+0.001"
+     },
+     "conds": [
+      {
+       "col": "Banca Capping*",
+       "op": "eq",
+       "value": "={1}/100"
+      }
+     ]
+    },
+    {
+     "band": {
+      "ll_gte": "={2}+0.001"
+     },
+     "conds": [
+      {
+       "col": "Banca Capping*",
+       "op": "eq",
+       "value": "={3}/100"
+      }
+     ]
+    }
+   ],
+   "fix": "Split the row at the discount in the sentence and set the cap per part. CONFIRM the scale: rule expects fractions (0.65) like the other cappings."
+  },
+  {
+   "id": "RM10",
+   "title": "\"If commission is negative then minimum IRDA\" → no IRDA / negative rows in output",
+   "enabled": true,
+   "severity": "ERROR",
+   "when": [
+    {
+     "col": "Special Remarks",
+     "op": "contains",
+     "value": "minimum IRDA"
+    }
+   ],
+   "match": "all",
+   "effects": {},
+   "expect": [
+    {
+     "band": {},
+     "conds": [
+      {
+       "col": "Banca Total Comm Rate*",
+       "op": "gte",
+       "value": 0
+      },
+      {
+       "col": "Irda Flag*",
+       "op": "neq",
+       "value": "IRDA"
+      }
+     ]
+    }
+   ],
+   "fix": "IRDA rows are not part of the output: drop rows with a negative commission instead of flagging them."
+  },
+  {
+   "id": "RM11",
+   "title": "Vehicle Subclass rows (HARVESTER, CRANE, LOADER…) are distinguishable in the output",
+   "enabled": true,
+   "severity": "WARN",
+   "when": [
+    {
+     "col": "Vehicle Subclass",
+     "op": "not_empty"
+    }
+   ],
+   "match": "all",
+   "effects": {},
+   "expect": [
+    {
+     "band": {},
+     "conds": [
+      {
+       "col": "Special Remarks",
+       "op": "not_any"
+      }
+     ]
+    }
+   ],
+   "fix": "The preset does not map Vehicle Subclass. Without it, HARVESTER and \"Other Than HARVESTER\" rows produce identical criteria (see R04)."
+  },
+  {
+   "id": "RM20",
+   "title": "New / modified rows this month are in the output",
+   "enabled": true,
+   "severity": "INFO",
+   "when": [
+    {
+     "col": "Entry Type",
+     "op": "regex",
+     "value": "New Addition|modified"
+    }
+   ],
+   "match": "all",
+   "effects": {},
+   "expect": [],
+   "fix": "Coverage only: missing rows are reported by R05."
+  }
+ ]
+}

@@ -1,0 +1,1027 @@
+{
+ "name": "Hyundai (HIIB)",
+ "version": 1,
+ "_about": "Starter profile built from the portal preset \"Hyundai (HIIB)\" and the Sept-26 source file. Items marked CONFIRM / SET PER USE CASE need a decision.",
+ "expected_columns": [
+  "Version Id*",
+  "Oem Type*",
+  "Parent Agent Code*",
+  "Supplier Code*",
+  "Primary Agent Code*",
+  "Biz Mix*",
+  "Two Wheeler Category*",
+  "Type Of Business*",
+  "Detriff Discount Ll*",
+  "Detriff Discount Ul*",
+  "Cubic Capacity Ll*",
+  "Cubic Capacity Ul*",
+  "Gross Vehicle Weight Ll*",
+  "Gross Vehicle Weight Ul*",
+  "Misp Hyundai*",
+  "Outgo Hyundai*",
+  "Comm Percentage Hyundai*",
+  "Tp Irda Flag*",
+  "Unique Id"
+ ],
+ "source": {
+  "sheet": "HIIB-Hyundai",
+  "header_row": 5,
+  "data_start_row": 6,
+  "start_col": 1,
+  "header_cells": {
+   "agent_code": "J2",
+   "agent_name": "K2"
+  },
+  "band_map": {
+   "0": [
+    0,
+    0.999
+   ],
+   "0-5": [
+    1.0,
+    5.001
+   ],
+   "1-5": [
+    1.001,
+    5.001
+   ],
+   "0.0": [
+    0,
+    1.001
+   ],
+   "6-10": [
+    5.001,
+    10.001
+   ],
+   "11-15": [
+    10.001,
+    15.001
+   ],
+   "16-20": [
+    15.001,
+    20.001
+   ],
+   "21-25": [
+    20.001,
+    25.001
+   ],
+   "26-30": [
+    25.001,
+    30.001
+   ],
+   "31-35": [
+    30.001,
+    35.001
+   ],
+   "36-40": [
+    35.001,
+    40.001
+   ],
+   "41-45": [
+    40.001,
+    45.001
+   ],
+   "46-50": [
+    45.001,
+    50.001
+   ],
+   "51-55": [
+    50.001,
+    55.001
+   ],
+   "56-60": [
+    55.001,
+    60.001
+   ],
+   "61-65": [
+    60.001,
+    65.001
+   ],
+   "66-70": [
+    65.001,
+    70.001
+   ],
+   "71-75": [
+    70.001,
+    75.001
+   ],
+   "76-80": [
+    75.001,
+    80.001
+   ],
+   "81-85": [
+    80.001,
+    85.001
+   ],
+   "86-90": [
+    85.001,
+    90.001
+   ],
+   "91-95": [
+    90.001,
+    95.001
+   ],
+   "96-100": [
+    95.001,
+    100.001
+   ]
+  },
+  "skip_rows_where": []
+ },
+ "reconcile": {
+  "enabled": true,
+  "output_band": {
+   "ll": "Detriff Discount Ll*",
+   "ul": "Detriff Discount Ul*"
+  },
+  "rate": {
+   "output": "Comm Percentage Hyundai*",
+   "scale": 100,
+   "tolerance": 0.0001,
+   "explain_by": "Payment Type",
+   "scale_rules": [
+    {
+     "when": [
+      {
+       "col": "Payment Type",
+       "op": "eq",
+       "value": "NOP"
+      }
+     ],
+     "scale": 1,
+     "output": "Comm Percentage Hyundai*",
+     "note": "NOP cells are ₹ amounts, not ×100. SET PER USE CASE: the column that receives them."
+    }
+   ],
+   "_note": "Source rates are fractions (0.15); the output holds 15 (confirmed)."
+  },
+  "tokens": {
+   "System Commission": {
+    "policy": "skip",
+    "output": ""
+   },
+   "IRDA": {
+    "policy": "skip",
+    "output": ""
+   },
+   "0": {
+    "policy": "optional",
+    "output": "0"
+   }
+  },
+  "unknown_text_policy": "optional",
+  "negative_policy": "skip",
+  "keys": [
+   {
+    "output": "Biz Mix*",
+    "source": "LOB",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Oem Type*",
+    "source": "OEM",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Primary Agent Code*",
+    "source": "Relationship Code",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Supplier Code*",
+    "source": "Dealer Code",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Type Of Business*",
+    "source": "Old/New",
+    "accept": {},
+    "blank_as": "ANY"
+   }
+  ],
+  "compare": [
+   {
+    "output": "Misp Hyundai*",
+    "source": "System CommissionExtra",
+    "accept": {},
+    "blank_as": "ANY"
+   },
+   {
+    "output": "Outgo Hyundai*",
+    "source": "Payment Type",
+    "accept": {},
+    "blank_as": "ANY"
+   }
+  ],
+  "severity": {
+   "missing": "ERROR",
+   "extra": "ERROR",
+   "rate": "ERROR",
+   "compare": "ERROR",
+   "skip": "ERROR",
+   "collision": "ERROR"
+  }
+ },
+ "checks": [
+  {
+   "id": "O01",
+   "title": "Template columns",
+   "type": "columns",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "order": "strict",
+    "allow_extra": false
+   },
+   "fix": ""
+  },
+  {
+   "id": "O02",
+   "title": "No blank cells",
+   "type": "not_blank",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "*"
+    ]
+   },
+   "fix": "Unmapped columns default to ANY in the portal — blanks come from manual edits."
+  },
+  {
+   "id": "O03",
+   "title": "No placeholder values",
+   "type": "no_placeholder",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "*"
+    ],
+    "values": [
+     "-",
+     "--",
+     "nan",
+     "NaN",
+     "None",
+     "#N/A",
+     "N/A",
+     "#REF!",
+     "#VALUE!",
+     "NULL",
+     "`"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O04",
+   "title": "Range columns are numbers",
+   "type": "numeric",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Detriff Discount Ll*",
+     "Detriff Discount Ul*",
+     "Cubic Capacity*",
+     "Gross Vehicle Weight*",
+     "Total Gwp*"
+    ],
+    "allow_tokens": []
+   },
+   "fix": "Detriff/CC/GVW/GWP limits must be numeric."
+  },
+  {
+   "id": "O05",
+   "title": "Other LL/UL columns are numbers (or ANY)",
+   "type": "numeric",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "* Ll*",
+     "* Ul*",
+     "!Detriff*",
+     "!Cubic Capacity*",
+     "!Gross Vehicle Weight*",
+     "!Total Gwp*"
+    ],
+    "allow_tokens": [
+     "ANY"
+    ]
+   },
+   "fix": "Text like '< 5' or 'Yes' copied into LL/UL — split it into numbers (manual step)."
+  },
+  {
+   "id": "O06",
+   "title": "Lower limit ≤ upper limit",
+   "type": "ll_ul",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "pairs": [],
+    "ll_suffix": " Ll*",
+    "ul_suffix": " Ul*",
+    "allow_equal": true,
+    "skip_tokens": [
+     "ANY"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O07",
+   "title": "Rate is a number",
+   "type": "numeric",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Comm Percentage Hyundai*"
+    ],
+    "allow_tokens": []
+   },
+   "fix": "Text in the rate column (e.g. 'System Commission', formulas) — such cells must not reach the output."
+  },
+  {
+   "id": "O23",
+   "title": "No 'System Commission' or 'IRDA' anywhere in the output",
+   "type": "no_placeholder",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "*"
+    ],
+    "values": [
+     "System Commission",
+     "IRDA"
+    ]
+   },
+   "fix": "System Commission and IRDA rows must be removed from the output."
+  },
+  {
+   "id": "O24",
+   "title": "Rate is not negative",
+   "type": "range",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Comm Percentage Hyundai*"
+    ],
+    "min": "0",
+    "max": "",
+    "allow_tokens": []
+   },
+   "fix": "Negative commission means IRDA minimum applies — such rows must not be in the output."
+  },
+  {
+   "id": "O08",
+   "title": "Percentage rate within 0–100",
+   "type": "range",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Comm Percentage Hyundai*"
+    ],
+    "min": "0",
+    "max": "100",
+    "allow_tokens": []
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "Outgo Hyundai*",
+     "op": "in",
+     "value": [
+      "GWP",
+      "OD",
+      "TP"
+     ]
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "O09",
+   "title": "Percentage rate below 1 — ×100 probably missing",
+   "type": "range",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Comm Percentage Hyundai*"
+    ],
+    "min": "1",
+    "max": "",
+    "allow_tokens": []
+   },
+   "fix": "Add math_op x*100 on the rate column (Transformations).",
+   "where": [
+    {
+     "col": "Outgo Hyundai*",
+     "op": "in",
+     "value": [
+      "GWP",
+      "OD",
+      "TP"
+     ]
+    },
+    {
+     "col": "Comm Percentage Hyundai*",
+     "op": "gt",
+     "value": 0
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "O10",
+   "title": "Rate has float artefacts",
+   "type": "max_decimals",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Comm Percentage Hyundai*"
+    ],
+    "decimals": 4
+   },
+   "fix": ""
+  },
+  {
+   "id": "O13",
+   "title": "Same criteria, different rate",
+   "type": "conflict",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "value_columns": [
+     "Comm Percentage Hyundai*",
+     "Outgo Hyundai*"
+    ],
+    "ignore_columns": [
+     "Unique Id",
+     "*Remarks*"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O14",
+   "title": "Exact duplicate rows",
+   "type": "duplicates",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "ignore_columns": [
+     "Unique Id"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O15",
+   "title": "Discount bands",
+   "type": "band_coverage",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "ll": "Detriff Discount Ll*",
+    "ul": "Detriff Discount Ul*",
+    "ignore_columns": [
+     "Unique Id",
+     "*Remarks*"
+    ],
+    "value_columns": [
+     "Comm Percentage Hyundai*",
+     "Outgo Hyundai*"
+    ],
+    "min": "0",
+    "max": "100.001",
+    "gaps": "WARN",
+    "overlaps": "ERROR",
+    "tolerance": 0.0005
+   },
+   "fix": ""
+  },
+  {
+   "id": "O20",
+   "title": "Changes vs previous grid",
+   "type": "reference_diff",
+   "target": "output",
+   "severity": "INFO",
+   "enabled": true,
+   "params": {
+    "key_columns": [],
+    "value_columns": [
+     "Comm Percentage Hyundai*",
+     "Outgo Hyundai*"
+    ],
+    "ignore_columns": [
+     "Unique Id",
+     "Version Id*"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O11",
+   "title": "Outgo value known",
+   "type": "allowed_values",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Outgo Hyundai*",
+    "values": [
+     "OD"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "Values seen in the Sept-26 source. Extend the list when a new payment type appears."
+  },
+  {
+   "id": "O12",
+   "title": "NOP rows carry an amount, not a %",
+   "type": "rule",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "if": [
+     {
+      "col": "Outgo Hyundai*",
+      "op": "eq",
+      "value": "NOP"
+     },
+     {
+      "col": "Comm Percentage Hyundai*",
+      "op": "numeric"
+     }
+    ],
+    "then": [
+     {
+      "col": "Comm Percentage Hyundai*",
+      "op": "gte",
+      "value": 1
+     }
+    ]
+   },
+   "fix": "NOP = per-policy amount (e.g. 2500). CONFIRM whether it belongs in the flat-amount column."
+  },
+  {
+   "id": "O16",
+   "title": "Unique Id is unique",
+   "type": "unique",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Unique Id"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O17",
+   "title": "Version Id",
+   "type": "single_value",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "column": "Version Id*",
+    "expected": "magma_hyundai_oem_Grid_1"
+   },
+   "fix": ""
+  },
+  {
+   "id": "O21",
+   "title": "Type Of Business value known",
+   "type": "allowed_values",
+   "target": "output",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Type Of Business*",
+    "values": [
+     "ANY",
+     "All",
+     "New",
+     "Old",
+     "Renewal, Roll Over"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "O22",
+   "title": "Parent Agent Code = agent code in cell J2",
+   "type": "single_value",
+   "target": "output",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "column": "Parent Agent Code*",
+    "expected": "@hdr:agent_code"
+   },
+   "fix": "The Hyundai preset does not map Parent Agent Code* — it stays ANY unless set by hand (or __LITERAL__)."
+  },
+  {
+   "id": "S01",
+   "title": "Percentage rate cells: fractions 0–1 or known token",
+   "type": "band_cells",
+   "target": "source",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "allowed_tokens": [
+     "System Commission"
+    ],
+    "min": "0",
+    "max": "1",
+    "cap_ul": ""
+   },
+   "fix": "Free text or values above 1 in a % row need manual handling before conversion.",
+   "where": [
+    {
+     "col": "Payment Type",
+     "op": "in",
+     "value": [
+      "GWP",
+      "OD",
+      "TP",
+      "System Commission"
+     ]
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S02",
+   "title": "Other payment types: rate cells readable",
+   "type": "band_cells",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "allowed_tokens": [
+     "System Commission"
+    ],
+    "min": "0",
+    "max": "",
+    "cap_ul": ""
+   },
+   "fix": "Mixed payment types (OD & D+C, GWP & NOP…) hold formulas — split them by hand and verify.",
+   "where": [
+    {
+     "col": "Payment Type",
+     "op": "not_in",
+     "value": [
+      "GWP",
+      "OD",
+      "TP",
+      "System Commission"
+     ]
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S05",
+   "title": "Unique Sr. No. is unique",
+   "type": "unique",
+   "target": "source",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "Unique Sr. No. for the month"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "S06",
+   "title": "LOB and Payment Type filled",
+   "type": "not_blank",
+   "target": "source",
+   "severity": "ERROR",
+   "enabled": true,
+   "params": {
+    "columns": [
+     "LOB",
+     "Payment Type"
+    ]
+   },
+   "fix": ""
+  },
+  {
+   "id": "S044",
+   "title": "Source Old/New value known",
+   "type": "allowed_values",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Old/New",
+    "values": [
+     "All",
+     "New",
+     "Old"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "Old/New",
+     "op": "not_empty"
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S045",
+   "title": "Source NCB (Y/N) value known",
+   "type": "allowed_values",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "NCB (Y/N)",
+    "values": [
+     "Yes",
+     "No"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "NCB (Y/N)",
+     "op": "not_empty"
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S046",
+   "title": "Source System CommissionExtra value known",
+   "type": "allowed_values",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "System CommissionExtra",
+    "values": [
+     "Yes",
+     "No"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "System CommissionExtra",
+     "op": "not_empty"
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S047",
+   "title": "Source Fuel Type value known",
+   "type": "allowed_values",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Fuel Type",
+    "values": [
+     "Petrol",
+     "Diesel",
+     "Electric",
+     "CNG",
+     "LPG",
+     "Other than Electric",
+     "Petrol/CNG"
+    ],
+    "case_sensitive": false
+   },
+   "fix": "",
+   "where": [
+    {
+     "col": "Fuel Type",
+     "op": "not_empty"
+    }
+   ],
+   "match": "all"
+  },
+  {
+   "id": "S08",
+   "title": "Relationship Code is a number (not a placeholder)",
+   "type": "pattern",
+   "target": "source",
+   "severity": "WARN",
+   "enabled": true,
+   "params": {
+    "column": "Relationship Code",
+    "regex": "\\d{8,}",
+    "allow_tokens": []
+   },
+   "fix": ""
+  }
+ ],
+ "source_rules": [
+  {
+   "id": "RM12a",
+   "title": "Inactive dealers dropped from the output",
+   "enabled": false,
+   "severity": "ERROR",
+   "when": [
+    {
+     "col": "Hyundai Dealer City wise Zone",
+     "op": "contains",
+     "value": "Inactive Dealer"
+    }
+   ],
+   "match": "all",
+   "effects": {
+    "no_output": true
+   },
+   "expect": [],
+   "fix": "Use case decides: enable THIS rule or RM12b, not both."
+  },
+  {
+   "id": "RM12b",
+   "title": "Inactive dealers kept with rate 0",
+   "enabled": false,
+   "severity": "ERROR",
+   "when": [
+    {
+     "col": "Hyundai Dealer City wise Zone",
+     "op": "contains",
+     "value": "Inactive Dealer"
+    }
+   ],
+   "match": "all",
+   "effects": {},
+   "expect": [
+    {
+     "band": {},
+     "conds": [
+      {
+       "col": "Comm Percentage Hyundai*",
+       "op": "eq",
+       "value": 0
+      }
+     ]
+    }
+   ],
+   "fix": "Use case decides: enable THIS rule or RM12a, not both."
+  },
+  {
+   "id": "RM13",
+   "title": "CC \"Not exceeding N CC\" → CC UL ≈ N",
+   "enabled": true,
+   "severity": "ERROR",
+   "when": [
+    {
+     "col": "CC",
+     "op": "regex",
+     "value": "Not exceeding (\\d+)\\s*CC"
+    }
+   ],
+   "match": "all",
+   "effects": {},
+   "expect": [
+    {
+     "band": {},
+     "conds": [
+      {
+       "col": "Cubic Capacity Ul*",
+       "op": "between",
+       "value": [
+        "={1}-1",
+        "={1}+1"
+       ]
+      }
+     ]
+    }
+   ],
+   "fix": "The preset does not map CC — set CC LL/UL by hand."
+  },
+  {
+   "id": "RM14",
+   "title": "CC \"Between A and B\" → CC LL ≈ A, UL ≈ B",
+   "enabled": true,
+   "severity": "ERROR",
+   "when": [
+    {
+     "col": "CC",
+     "op": "regex",
+     "value": "Between (\\d+)\\s*CC and (\\d+)\\s*CC"
+    }
+   ],
+   "match": "all",
+   "effects": {},
+   "expect": [
+    {
+     "band": {},
+     "conds": [
+      {
+       "col": "Cubic Capacity Ll*",
+       "op": "between",
+       "value": [
+        "={1}-1",
+        "={1}+1"
+       ]
+      },
+      {
+       "col": "Cubic Capacity Ul*",
+       "op": "between",
+       "value": [
+        "={2}-1",
+        "={2}+1"
+       ]
+      }
+     ]
+    }
+   ],
+   "fix": ""
+  },
+  {
+   "id": "RM15",
+   "title": "CC \"Exceeding N CC\" → CC LL ≈ N",
+   "enabled": true,
+   "severity": "ERROR",
+   "when": [
+    {
+     "col": "CC",
+     "op": "regex",
+     "value": "^\\s*Exceeding (\\d+)\\s*CC"
+    }
+   ],
+   "match": "all",
+   "effects": {},
+   "expect": [
+    {
+     "band": {},
+     "conds": [
+      {
+       "col": "Cubic Capacity Ll*",
+       "op": "between",
+       "value": [
+        "={1}-1",
+        "={1}+1"
+       ]
+      }
+     ]
+    }
+   ],
+   "fix": ""
+  },
+  {
+   "id": "RM20",
+   "title": "New / modified rows this month are in the output",
+   "enabled": true,
+   "severity": "INFO",
+   "when": [
+    {
+     "col": "Entry type",
+     "op": "regex",
+     "value": "New Addition|modified"
+    }
+   ],
+   "match": "all",
+   "effects": {},
+   "expect": [],
+   "fix": "Coverage only: missing rows are reported by R05."
+  }
+ ]
+}

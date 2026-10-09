@@ -864,5 +864,137 @@ def get_presets():
             "rto_cluster_source":"UW Budget Cluster"}
     })
 
+# ══════════════════════════════════════════════════════════════════════════════
+# VERTICAL GRID CHECKER  (check the final grid after manual steps)
+# ══════════════════════════════════════════════════════════════════════════════
+import vertical_checker as vchk
+from vc_profiles import starter_profile
+from vc_core import read_source as _vc_read_source
+
+PROFILES_DIR = os.path.join(os.path.dirname(__file__), 'checker_profiles')
+os.makedirs(PROFILES_DIR, exist_ok=True)
+
+
+def _prof_path(name):
+    name = secure_filename(name or '')
+    if not name: raise ValueError('Profile name required')
+    if not name.endswith('.json'): name += '.json'
+    return os.path.join(PROFILES_DIR, name)
+
+
+def _inside(path, folder):
+    return bool(path) and os.path.realpath(path).startswith(os.path.realpath(folder) + os.sep)
+
+
+@app.route('/api/vchecker/catalog')
+def vchk_catalog():
+    return jsonify(vchk.catalog())
+
+
+@app.route('/api/vchecker/profiles')
+def vchk_profiles():
+    out = []
+    for f in sorted(os.listdir(PROFILES_DIR)):
+        if f.endswith('.json'):
+            try: nm = json.load(open(os.path.join(PROFILES_DIR, f))).get('name', '')
+            except Exception: nm = '(unreadable)'
+            out.append({'file': f, 'name': nm})
+    return jsonify({'profiles': out})
+
+
+@app.route('/api/vchecker/profiles/<name>', methods=['GET', 'POST', 'DELETE'])
+def vchk_profile(name):
+    try:
+        p = _prof_path(name)
+        if request.method == 'GET':
+            if not os.path.exists(p): return jsonify({'error': 'Not found'}), 404
+            return jsonify({'file': os.path.basename(p), 'profile': json.load(open(p))})
+        if request.method == 'DELETE':
+            if os.path.exists(p): os.remove(p)
+            return jsonify({'success': True})
+        prof = (request.json or {}).get('profile')
+        errs, warns = vchk.validate_profile(prof)
+        if errs: return jsonify({'error': 'Profile not saved — fix these first', 'errors': errs, 'warnings': warns}), 400
+        if os.path.exists(p):
+            import shutil; shutil.copyfile(p, p + '.bak')
+        json.dump(prof, open(p, 'w'), indent=1, ensure_ascii=False)
+        return jsonify({'success': True, 'file': os.path.basename(p), 'warnings': warns})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+
+@app.route('/api/vchecker/validate', methods=['POST'])
+def vchk_validate():
+    e, w = vchk.validate_profile((request.json or {}).get('profile'))
+    return jsonify({'errors': e, 'warnings': w})
+
+
+@app.route('/api/vchecker/source_columns', methods=['POST'])
+def vchk_source_columns():
+    try:
+        d = request.json or {}
+        if not _inside(d.get('filepath'), UPLOAD_DIR): return jsonify({'columns': []})
+        T, hdr, _ = _vc_read_source(d['filepath'], {'sheet': d.get('sheet'), 'header_row': int(d.get('header_row') or 1),
+                                                     'start_col': 1, 'header_cells': d.get('header_cells') or {}})
+        return jsonify({'columns': list(T.columns), 'header_cells': hdr, 'rows': len(T)})
+    except Exception as e:
+        return jsonify({'columns': [], 'error': str(e)})
+
+
+@app.route('/api/vchecker/from_preset', methods=['POST'])
+def vchk_from_preset():
+    """Build a starter profile from a portal preset (or the current Step 3 mapping) + optional source sheet."""
+    try:
+        d = request.json or {}
+        preset = d.get('preset') or {}
+        T = None
+        if _inside(d.get('filepath'), UPLOAD_DIR) and d.get('sheet'):
+            try:
+                T, _, _ = _vc_read_source(d['filepath'], {'sheet': d['sheet'], 'header_row': int(d.get('header_row') or 1), 'start_col': 1})
+            except Exception:
+                T = None
+        prof = starter_profile(d.get('name') or 'New profile', preset, d.get('sheet') or '', int(d.get('header_row') or 1),
+                               d.get('header_cells') or {}, T)
+        return jsonify({'profile': prof, 'used_source': T is not None})
+    except Exception as e:
+        return jsonify({'error': str(e), 'trace': traceback.format_exc()}), 400
+
+
+@app.route('/api/vchecker/run', methods=['POST'])
+def vchk_run():
+    try:
+        sid = str(uuid.uuid4())[:8]
+        def save(field):
+            f = request.files.get(field)
+            if not f or not f.filename: return None
+            p = os.path.join(UPLOAD_DIR, f'{sid}_vchk_{secure_filename(f.filename)}'); f.save(p); return p
+        csv = save('csv'); label = request.files['csv'].filename if csv else None
+        if not csv and request.form.get('last_output'):
+            csv = os.path.join(OUTPUT_DIR, secure_filename(request.form['last_output']))
+            label = f"last portal output ({request.form['last_output']})"
+            if not os.path.exists(csv): return jsonify({'error': 'Last portal output is no longer on the server'}), 400
+        if not csv: return jsonify({'error': 'Upload the final CSV to check'}), 400
+        def server_path(field):
+            p = request.form.get(field)
+            return p if (p and _inside(p, UPLOAD_DIR) and os.path.exists(p)) else None
+        source = save('source') or server_path('source_path')
+        rto = save('rto') or server_path('rto_path')
+        reference = save('reference')
+        if request.form.get('profile_json'): prof = json.loads(request.form['profile_json'])
+        else: prof = json.load(open(_prof_path(request.form.get('profile_name', ''))))
+        errs, _ = vchk.validate_profile(prof)
+        if errs: return jsonify({'error': 'Profile is invalid', 'errors': errs}), 400
+        cfg = json.loads(request.form['config_json']) if request.form.get('config_json') else None
+        if request.form.get('no_source'): source = None
+        report_fn = f'{sid}_vertical_check_report.xlsx'
+        F = vchk.run(csv, prof, source, rto, reference, cfg, os.path.join(OUTPUT_DIR, report_fn), label=label, quiet=True)
+        e = sum(i['severity'] == 'ERROR' for i in F.items); w = sum(i['severity'] == 'WARN' for i in F.items)
+        return jsonify({'verdict': 'FAIL' if e else ('PASS_WITH_WARNINGS' if w else 'PASS'), 'errors': e, 'warnings': w,
+                        'meta': F.meta, 'stats': F.stats, 'findings': F.items, 'samples': F.samples[:300],
+                        'report_filename': report_fn, 'used': {'source': bool(source), 'rto': bool(rto), 'reference': bool(reference), 'config': bool(cfg)}})
+    except Exception as e:
+        return jsonify({'error': str(e), 'trace': traceback.format_exc()}), 500
+
+
 if __name__=='__main__':
     app.run(debug=True,port=5050,host='0.0.0.0')
