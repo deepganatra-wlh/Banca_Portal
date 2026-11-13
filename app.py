@@ -32,7 +32,9 @@ def build_rto_mapping(path):
                 rto_df = pd.read_excel(path, sheet_name=s); break
         if rto_df is None or 'UW Budget Cluster' not in rto_df.columns: return {}
         rto_df['UW Budget Cluster'] = rto_df['UW Budget Cluster'].astype(str).str.strip()
-        rto_df['Code'] = rto_df['Code'].astype(str).str.strip()
+        code_col = next((c for c in rto_df.columns if str(c).strip().lower() in ('code','rto code','rto_code','rtocode')), None)
+        if code_col is None: return {}
+        rto_df['Code'] = rto_df[code_col].astype(str).str.strip()
         rto_df = rto_df[rto_df['UW Budget Cluster'].notna() & (rto_df['UW Budget Cluster'] != '')]
         out = {}
         for cl in rto_df['UW Budget Cluster'].unique():
